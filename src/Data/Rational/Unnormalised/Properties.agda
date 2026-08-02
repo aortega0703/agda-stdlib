@@ -1572,6 +1572,23 @@ p>1⇒1/p<1 {p} p>1 = lemma′ p (p>1⇒p≢0 p>1) p>1
     1/q≥0 = pos⇒nonNeg 1/q {{1/pos⇒pos q}}
 
 ------------------------------------------------------------------------
+-- Properties of _/_
+
+/-cancelʳ-< : ∀ {i} {j} d .{{_ : ℕ.NonZero d}} → i / d < j / d → i ℤ.< j
+/-cancelʳ-< {i} {j} d@(suc _) (*<* i*d<j*d) = begin-strict
+  i           ≡⟨ ↥[n/d]≡n i d ⟨
+  (↥ (i / d)) <⟨ ℤ.*-cancelʳ-<-nonNeg (ℤ.+ d) i*d<j*d ⟩
+  (↥ (j / d)) ≡⟨ ↥[n/d]≡n j d ⟩
+  j           ∎ where open ℤ.≤-Reasoning
+
+/-cancelʳ-≤ : ∀ {i} {j} d .{{_ : ℕ.NonZero d}} → i / d ≤ j / d → i ℤ.≤ j
+/-cancelʳ-≤ {i} {j} d@(suc _) (*≤* i*d≤i*d) = begin
+  i           ≡⟨ ↥[n/d]≡n i d ⟨
+  (↥ (i / d)) ≤⟨ ℤ.*-cancelʳ-≤-pos _ _(ℤ.+ d) i*d≤i*d ⟩
+  (↥ (j / d)) ≡⟨ ↥[n/d]≡n j d ⟩
+  j           ∎ where open ℤ.≤-Reasoning
+
+------------------------------------------------------------------------
 -- Properties of _⊓_ and _⊔_
 ------------------------------------------------------------------------
 -- Basic specification in terms of _≤_
@@ -1990,63 +2007,23 @@ q≤⌈q⌉ q@record{} = begin
   - (- (⌊ - q ⌋ / 1 + 1ℚᵘ)) ≡⟨ cong -_ (neg-distrib-+ (⌊ - q ⌋ / 1) 1ℚᵘ) ⟩
   - (⌈ q ⌉ / 1 - 1ℚᵘ)       ∎) where open ≤-Reasoning
 
-private
-  -[-n-m]≡n+m : ∀ n m → ℤ.- (ℤ.- n ℤ.- m) ≡ n ℤ.+ m
-  -[-n-m]≡n+m n m = begin
-    ℤ.- (ℤ.- n ℤ.- m)   ≡⟨ cong (ℤ.-_) (ℤ.neg-distrib-+ n m) ⟨
-    ℤ.- (ℤ.- (n ℤ.+ m)) ≡⟨ ℤ.neg-involutive (n ℤ.+ m) ⟩
-    n ℤ.+ m             ∎ where open ≡-Reasoning
-
-  n+n≡2n : ∀ n → n ℤ.+ n ≡ (ℤ.+ 2) ℤ.* n
-  n+n≡2n n = begin
-    n ℤ.+ n               ≡⟨ cong (λ x → x ℤ.+ x) (ℤ.*-identityˡ n) ⟨
-    1ℤ ℤ.* n ℤ.+ 1ℤ ℤ.* n ≡⟨ ℤ.*-distribʳ-+ n 1ℤ 1ℤ ⟨
-    (ℤ.+ 2) ℤ.* n         ∎ where open ≡-Reasoning
-
-  ⌈q⌉-⌊q⌋≤1 : ∀ q → ⌈ q ⌉ ℤ.- ⌊ q ⌋ ℤ.≤ 1ℤ
-  ⌈q⌉-⌊q⌋≤1 q = ℤ.i<j⇒i≤pred[j] (⌈q⌉-⌊q⌋<2 q)
-    where
-    ⌈q⌉-⌊q⌋<2 : ∀ q → ⌈ q ⌉ ℤ.- ⌊ q ⌋ ℤ.< (ℤ.+ 2)
-    ⌈q⌉-⌊q⌋<2 q@record{} =
-      let n = ↥ q; d = ↧ q; -n = ℤ.- n
-          n%d = ℤ.+ (n ℤ.% d); -n%d = ℤ.+ (-n ℤ.% d)
-          [n/d]*d = (n ℤ./ d) ℤ.* d; [-n/d]*d = (-n ℤ./ d) ℤ.* d
-      in ℤ.*-cancelʳ-<-nonNeg d (begin-strict
-        (⌈ q ⌉ ℤ.- ⌊ q ⌋) ℤ.* d
-            ≡⟨ ℤ.*-distribʳ-+ d ⌈ q ⌉ (ℤ.- ⌊ q ⌋) ⟩
-        (ℤ.- ⌊ - q ⌋) ℤ.* d ℤ.+ (ℤ.- ⌊ q ⌋) ℤ.* d
-            ≡⟨ cong₂ (ℤ._+_) (ℤ.neg-distribˡ-* ⌊ - q ⌋ d)
-                             (ℤ.neg-distribˡ-* ⌊ q ⌋ d)  ⟨
-        ℤ.- [-n/d]*d ℤ.- [n/d]*d
-            ≡⟨ ℤ.neg-distrib-+ [-n/d]*d [n/d]*d ⟨
-        ℤ.- ([-n/d]*d ℤ.+ [n/d]*d)
-            ≡⟨ cong₂ (λ x y → ℤ.- (x ℤ.+ y))
-                     (y≈x\\z -n%d [-n/d]*d -n (sym (ℤ.a≡a%n+[a/n]*n -n d)))
-                     (y≈x\\z n%d [n/d]*d n (sym (ℤ.a≡a%n+[a/n]*n n d)))  ⟩
-         ℤ.- ( (ℤ.- -n%d ℤ.+ -n) ℤ.+ (ℤ.- n%d ℤ.+ n))
-            ≡⟨ cong (λ x → ℤ.- ((ℤ.- -n%d ℤ.+ -n) ℤ.+ x)) (ℤ.+-comm _ n) ⟩
-        ℤ.- ((ℤ.- -n%d ℤ.+ -n) ℤ.+ (n ℤ.- n%d))
-            ≡⟨ cong (ℤ.-_) (ℤ.+-minus-telescope (ℤ.- -n%d) n n%d) ⟩
-        ℤ.- (ℤ.- -n%d ℤ.- n%d)
-            ≡⟨ -[-n-m]≡n+m -n%d n%d ⟩
-        -n%d ℤ.+ n%d
-            <⟨ ℤ.+-mono-< (ℤ.+<+ (ℤ.n%d<d -n d)) (ℤ.+<+ (ℤ.n%d<d n d)) ⟩
-        d ℤ.+ d
-            ≡⟨ n+n≡2n d ⟩
-        (ℤ.+ 2) ℤ.* d ∎)
-      where
-      open ℤ.≤-Reasoning
-      open import Algebra.Properties.AbelianGroup ℤ.+-0-abelianGroup
-
 ⌈q⌉≤⌊q⌋+1 : ∀ q → ⌈ q ⌉ ℤ.≤ ⌊ q ⌋ ℤ.+ 1ℤ
 ⌈q⌉≤⌊q⌋+1 q = begin
-  ⌈ q ⌉                       ≡⟨ //-rightDividesˡ ⌊ q ⌋ ⌈ q ⌉ ⟨
-  (⌈ q ⌉ ℤ.- ⌊ q ⌋) ℤ.+ ⌊ q ⌋ ≤⟨ ℤ.+-monoˡ-≤ ⌊ q ⌋ (⌈q⌉-⌊q⌋≤1 q) ⟩
-  1ℤ ℤ.+ ⌊ q ⌋                ≡⟨ ℤ.+-comm 1ℤ ⌊ q ⌋ ⟩
-  floor q ℤ.+ 1ℤ              ∎
+  ⌈ q ⌉                ≡⟨ \\-leftDividesˡ 1ℤ ⌈ q ⌉ ⟨
+  ℤ.suc (ℤ.pred ⌈ q ⌉) ≡⟨ cong ℤ.suc (ℤ.+-comm (ℤ.- 1ℤ) ⌈ q ⌉) ⟩
+  ℤ.suc (⌈ q ⌉ ℤ.- 1ℤ) ≤⟨ ℤ.i<j⇒suc[i]≤j ⌈q⌉-1<⌊q⌋+1 ⟩
+  ⌊ q ⌋ ℤ.+ 1ℤ         ∎
   where
   open ℤ.≤-Reasoning
   open import Algebra.Properties.AbelianGroup ℤ.+-0-abelianGroup
+  ⌈q⌉-1<⌊q⌋+1 : ⌈ q ⌉ ℤ.- 1ℤ ℤ.< ⌊ q ⌋ ℤ.+ 1ℤ
+  ⌈q⌉-1<⌊q⌋+1 = begin-strict
+    ⌈ q ⌉ ℤ.- 1ℤ               ≡⟨ cong₂ ℤ._-_ (ℤ.*-identityʳ ⌈ q ⌉)
+                                              (ℤ.*-identityʳ 1ℤ) ⟨
+    ⌈ q ⌉ ℤ.* 1ℤ ℤ.- 1ℤ ℤ.* 1ℤ <⟨ /-cancelʳ-< 1 (<-trans (⌈q⌉-1<q q) (q<⌊q⌋+1 q)) ⟩
+    ⌊ q ⌋ ℤ.* 1ℤ ℤ.+ 1ℤ ℤ.* 1ℤ ≡⟨ cong₂ ℤ._+_ (ℤ.*-identityʳ ⌊ q ⌋)
+                                              (ℤ.*-identityʳ 1ℤ) ⟩
+    ⌊ q ⌋ ℤ.+ 1ℤ               ∎
 
 ------------------------------------------------------------------------
 -- Approximation errors of ⌊_⌋ ⌈_⌉ and round(_)
