@@ -2025,6 +2025,36 @@ q≤⌈q⌉ q@record{} = begin
                                               (ℤ.*-identityʳ 1ℤ) ⟩
     ⌊ q ⌋ ℤ.+ 1ℤ               ∎
 
+i/1≤q⇒i≤⌊q⌋ : ∀ i q → i / 1 ≤ q → i ℤ.≤ ⌊ q ⌋
+i/1≤q⇒i≤⌊q⌋ i q i/1≤q = begin
+  i                    ≤⟨ ℤ.i<j⇒i≤pred[j] i<s⌊q⌋ ⟩
+  ℤ.pred (ℤ.suc ⌊ q ⌋) ≡⟨ ℤ.pred-suc ⌊ q ⌋ ⟩
+  ⌊ q ⌋                ∎
+  where
+  open ℤ.≤-Reasoning
+  i<s⌊q⌋ : i ℤ.< ℤ.suc ⌊ q ⌋
+  i<s⌊q⌋ = begin-strict
+    i                          <⟨ /-cancelʳ-< 1 (≤-<-trans i/1≤q (q<⌊q⌋+1 q)) ⟩
+    ⌊ q ⌋ ℤ.* 1ℤ ℤ.+ 1ℤ ℤ.* 1ℤ ≡⟨ cong₂ ℤ._+_ (ℤ.*-identityʳ ⌊ q ⌋)
+                                              (ℤ.*-identityʳ 1ℤ) ⟩
+    ⌊ q ⌋ ℤ.+ 1ℤ               ≡⟨ ℤ.+-comm ⌊ q ⌋ 1ℤ ⟩
+    ℤ.suc ⌊ q ⌋                ∎
+
+q≤i/1⇒⌈q⌉≤i : ∀ i q → q ≤ i / 1 → ⌈ q ⌉ ℤ.≤ i
+q≤i/1⇒⌈q⌉≤i i q q≤i/1 = begin
+  ⌈ q ⌉                ≡⟨ ℤ.suc-pred ⌈ q ⌉ ⟨
+  ℤ.suc (ℤ.pred ⌈ q ⌉) ≤⟨ ℤ.i<j⇒suc[i]≤j p⌊q⌋<i ⟩
+  i                    ∎
+  where
+  open ℤ.≤-Reasoning
+  p⌊q⌋<i : ℤ.pred ⌈ q ⌉ ℤ.< i
+  p⌊q⌋<i = begin-strict
+    ℤ.pred ⌈ q ⌉                     ≡⟨ ℤ.+-comm (ℤ.- 1ℤ) ⌈ q ⌉ ⟩
+    ⌈ q ⌉ ℤ.- 1ℤ                     ≡⟨ cong₂ ℤ._+_ (ℤ.*-identityʳ ⌈ q ⌉)
+                                                    (ℤ.*-identityʳ (ℤ.- 1ℤ)) ⟨
+    ⌈ q ⌉ ℤ.* 1ℤ ℤ.+ (ℤ.- 1ℤ) ℤ.* 1ℤ <⟨ /-cancelʳ-< 1 (<-≤-trans (⌈q⌉-1<q q) q≤i/1) ⟩
+    i                                ∎
+
 ------------------------------------------------------------------------
 -- Approximation errors of ⌊_⌋ ⌈_⌉ and round(_)
 
