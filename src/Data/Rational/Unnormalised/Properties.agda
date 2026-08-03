@@ -1965,8 +1965,24 @@ pos⊔pos⇒pos p q = positive (⊔-mono-< (positive⁻¹ p) (positive⁻¹ q))
   - (- q) ≡⟨ neg-involutive-≡ q ⟩
   q       ∎ where open ≤-Reasoning
 
+-q<p<q⇒∣p∣<q : ∀ {p q} → - q < p → p < q → ∣ p ∣ < q
+-q<p<q⇒∣p∣<q {p} {q} -q<p p<q with ∣p∣≡p∨∣p∣≡-p p
+... | inj₁ ∣p∣≡p  =  <-respˡ-≃ (≃-reflexive (sym ∣p∣≡p)) p<q
+... | inj₂ ∣p∣≡-p = begin-strict
+  ∣ p ∣   ≡⟨ ∣p∣≡-p ⟩
+  - p     <⟨ neg-mono-< -q<p ⟩
+  - (- q) ≡⟨ neg-involutive-≡ q ⟩
+  q       ∎ where open ≤-Reasoning
+
 ------------------------------------------------------------------------
 -- Properties of Rounding functions
+
+⌊-q⌋≡-⌈q⌉ : ∀ q → ⌊ - q ⌋ ≡ ℤ.- ⌈ q ⌉
+⌊-q⌋≡-⌈q⌉ q@record{} = sym (ℤ.neg-involutive ⌊ - q ⌋)
+
+⌈-q⌉≡-⌊q⌋ : ∀ q → ⌈ - q ⌉ ≡ ℤ.- ⌊ q ⌋
+⌈-q⌉≡-⌊q⌋ q@record{} = cong (λ x → ℤ.- ⌊ x ⌋) (neg-involutive-≡ q)
+
 ------------------------------------------------------------------------
 -- Bounds of ⌊_⌋ and ⌈_⌉
 
@@ -2059,32 +2075,31 @@ q≤i/1⇒⌈q⌉≤i i q q≤i/1 = begin
 -- Approximation errors of ⌊_⌋ ⌈_⌉ and round(_)
 
 private
-  -1≤q-⌊q⌋ : ∀ q → - 1ℚᵘ ≤ q - ⌊ q ⌋ / 1
-  -1≤q-⌊q⌋ q = let ⌊q⌋ = ⌊ q ⌋ / 1 in begin
-    - 1ℚᵘ     ≤⟨ *≤* ℤ.-≤+ ⟩
+  -1<q-⌊q⌋ : ∀ q → - 1ℚᵘ < q - ⌊ q ⌋ / 1
+  -1<q-⌊q⌋ q = let ⌊q⌋ = ⌊ q ⌋ / 1 in begin-strict
+    - 1ℚᵘ     <⟨ *<* ℤ.-<+ ⟩
     0ℚᵘ       ≃⟨ +-inverseʳ ⌊q⌋ ⟨
     ⌊q⌋ - ⌊q⌋ ≤⟨ +-monoˡ-≤ _ (⌊q⌋≤q q) ⟩
     q - ⌊q⌋   ∎ where open ≤-Reasoning
 
-  q-⌊q⌋≤1 : ∀ q → q - ⌊ q ⌋ / 1 ≤ 1ℚᵘ
-  q-⌊q⌋≤1 q = let ⌊q⌋ = ⌊ q ⌋ / 1 in begin
-    q - ⌊q⌋         ≤⟨ <⇒≤ (+-monoˡ-< _ (q<⌊q⌋+1 q)) ⟩
+  q-⌊q⌋<1 : ∀ q → q - ⌊ q ⌋ / 1 < 1ℚᵘ
+  q-⌊q⌋<1 q = let ⌊q⌋ = ⌊ q ⌋ / 1 in begin-strict
+    q - ⌊q⌋         <⟨ +-monoˡ-< _ (q<⌊q⌋+1 q) ⟩
     ⌊q⌋ + 1ℚᵘ - ⌊q⌋ ≃⟨ xyx⁻¹≈y ⌊q⌋ 1ℚᵘ ⟩
     1ℚᵘ             ∎
     where
     open ≤-Reasoning
     open import Algebra.Properties.AbelianGroup +-0-abelianGroup
 
-∣q-⌊q⌋∣≤1 : ∀ q → ∣ q - ⌊ q ⌋ / 1 ∣ ≤ 1ℚᵘ
-∣q-⌊q⌋∣≤1 q = -q≤p≤q⇒∣p∣≤q (-1≤q-⌊q⌋ q) (q-⌊q⌋≤1 q)
+∣q-⌊q⌋∣<1 : ∀ q → ∣ q - ⌊ q ⌋ / 1 ∣ < 1ℚᵘ
+∣q-⌊q⌋∣<1 q = -q<p<q⇒∣p∣<q (-1<q-⌊q⌋ q) (q-⌊q⌋<1 q)
 
-∣q-⌈q⌉∣≤1 : ∀ q → ∣ q - ⌈ q ⌉ / 1 ∣ ≤ 1ℚᵘ
-∣q-⌈q⌉∣≤1 q@record{} = let ⌊-q⌋ = ⌊ - q ⌋ / 1 in begin
-  ∣ q - ⌈ q ⌉ / 1 ∣ ≡⟨⟩
-  ∣ q - (- ⌊-q⌋) ∣  ≡⟨ cong (λ h → ∣ q + h ∣) (neg-involutive-≡ ⌊-q⌋) ⟩
+∣q-⌈q⌉∣<1 : ∀ q → ∣ q - ⌈ q ⌉ / 1 ∣ < 1ℚᵘ
+∣q-⌈q⌉∣<1 q@record{} = let ⌊-q⌋ = ⌊ - q ⌋ / 1 in begin-strict
+  ∣ q - ⌈ q ⌉ / 1 ∣ ≡⟨ cong (λ x → ∣ q + x / 1 ∣) (⌊-q⌋≡-⌈q⌉ q) ⟨
   ∣ q + ⌊-q⌋ ∣      ≡⟨ ∣-p∣≡∣p∣ (q + ⌊-q⌋) ⟨
   ∣ - (q + ⌊-q⌋) ∣  ≡⟨ cong ∣_∣ (neg-distrib-+ q ⌊-q⌋) ⟩
-  ∣ - q - ⌊-q⌋ ∣    ≤⟨ ∣q-⌊q⌋∣≤1 (- q) ⟩
+  ∣ - q - ⌊-q⌋ ∣    <⟨ ∣q-⌊q⌋∣<1 (- q) ⟩
   1ℚᵘ               ∎ where open ≤-Reasoning
 
 private
