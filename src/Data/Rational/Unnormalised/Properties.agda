@@ -27,7 +27,8 @@ open import Algebra.Construct.NaturalChoice.Base
   using (MaxOperator; MinOperator)
 import Algebra.Construct.NaturalChoice.MinMaxOp as MinMaxOp
 import Algebra.Lattice.Construct.NaturalChoice.MinMaxOp as LatticeMinMaxOp
-open import Data.Bool.Base using (T; true; false)
+open import Data.Bool.Base using (T; true; false; not)
+open import Data.Bool.Properties using (if-cong; T-to-≡; ≡-to-T; T-not-to-≡; ≡-to-T-not)
 open import Data.Maybe.Base using (Maybe; just; nothing)
 open import Data.Nat.Base as ℕ using (suc; pred)
 import Data.Nat.Properties as ℕ
@@ -43,8 +44,6 @@ open import Data.Sum.Base as Sum using (_⊎_; [_,_]′; inj₁; inj₂)
 import Data.Sign as Sign
 open import Function.Base using (_on_; _$_; _∘_; flip)
 open import Level using (0ℓ)
-open import Relation.Nullary.Decidable.Core as Dec using (yes; no)
-open import Relation.Nullary.Negation.Core using (¬_; contradiction)
 open import Relation.Binary.Core using (_⇒_; _Preserves_⟶_; _Preserves₂_⟶_⟶_)
 open import Relation.Binary.Bundles
   using (Setoid; DecSetoid; Preorder; TotalPreorder; Poset; TotalOrder
@@ -63,6 +62,10 @@ open import Relation.Binary.PropositionalEquality
 import Relation.Binary.Properties.Poset as PosetProperties
 import Relation.Binary.Reasoning.Setoid as ≈-Reasoning
 open import Relation.Binary.Reasoning.Syntax
+open import Relation.Nullary.Decidable.Core as Dec using (yes; no)
+open import Relation.Nullary.Negation.Core using (¬_; contradiction)
+open import Relation.Nullary.Reflects
+  using (Reflects; fromEquivalence; reflects-false; reflects-refute)
 
 open import Algebra.Properties.CommutativeSemigroup ℤ.*-commutativeSemigroup
 
@@ -406,6 +409,15 @@ antimono⇒cong = BC.antimono⇒cong _≃_ _≃_ ≃-sym ≤-reflexive ≤-antis
 
 ≤⇒≤ᵇ : p ≤ q → T (p ≤ᵇ q)
 ≤⇒≤ᵇ = ℤ.≤⇒≤ᵇ ∘ drop-*≤*
+
+≤ᵇ-reflects-≤ : ∀ p q → Reflects (p ≤ q) (p ≤ᵇ q)
+≤ᵇ-reflects-≤ p q = fromEquivalence ≤ᵇ⇒≤ ≤⇒≤ᵇ
+
+≰ᵇ⇒≰ : T (not (p ≤ᵇ q)) → p ≰ q
+≰ᵇ⇒≰ {p} {q} p≰ᵇq = reflects-false (≤ᵇ-reflects-≤ p q) (T-not-to-≡ p≰ᵇq)
+
+≰⇒≰ᵇ : p ≰ q → T (not (p ≤ᵇ q))
+≰⇒≰ᵇ {p} {q} p≰q = ≡-to-T-not (reflects-refute (≤ᵇ-reflects-≤ p q) p≰q)
 
 ------------------------------------------------------------------------
 -- Properties of _<_
@@ -1976,6 +1988,40 @@ pos⊔pos⇒pos p q = positive (⊔-mono-< (positive⁻¹ p) (positive⁻¹ q))
 
 ------------------------------------------------------------------------
 -- Properties of Rounding functions
+
+floor-cong : ∀ {p} {q} → p ≃ q → ⌊ p ⌋ ≡ ⌊ q ⌋
+floor-cong {p@record{}} {q@record{}} (*≡* ↥p↧q≡↥q↧p) = begin
+  ↥ p ℤ./ ↧ p                     ≡⟨ ℤ.*-cancelʳ-/ (↥ p) (↧ q) (↧ p) ⟨
+  (↥ p ℤ.* ↧ q) ℤ./ (↧ p ℤ.* ↧ q) ≡⟨ cong (ℤ._/ (↧ p ℤ.* ↧ q)) ↥p↧q≡↥q↧p ⟩
+  (↥ q ℤ.* ↧ p) ℤ./ (↧ p ℤ.* ↧ q) ≡⟨ cong (ℤ._/ (↧ p ℤ.* ↧ q)) (ℤ.*-comm (↥ q) _)⟩
+  (↧ p ℤ.* ↥ q) ℤ./ (↧ p ℤ.* ↧ q) ≡⟨ ℤ.*-cancelˡ-/ (↧ p) (↥ q) (↧ q) ⟩
+  ↥ q ℤ./ ↧ q ∎ where open ≡-Reasoning
+
+ceiling-cong : ∀ {p} {q} → p ≃ q → ⌈ p ⌉ ≡ ⌈ q ⌉
+ceiling-cong {p@record{}} {q@record{}} eq = cong ℤ.-_ (floor-cong (-‿cong eq))
+
+round-cong : ∀ {p} {q} → p ≃ q → round p ≡ round q
+round-cong {p@record{}} {q@record{}} eq with p ≤ᵇ 0ℚᵘ in leq
+... | false = begin
+  ⌊ p + ½ ⌋ ≡⟨ floor-cong (+-congˡ ½ eq) ⟩
+  ⌊ q + ½ ⌋ ≡⟨ if-cong q≤ᵇ0≡false ⟨
+  round q   ∎
+  where
+    open ≡-Reasoning
+    0<q : 0ℚᵘ < q
+    0<q = <-respʳ-≃ eq ((≰⇒> ∘ ≰ᵇ⇒≰ ∘ ≡-to-T-not) leq)
+    q≤ᵇ0≡false : (q ≤ᵇ 0ℚᵘ) ≡ false
+    q≤ᵇ0≡false = T-not-to-≡ (≰⇒≰ᵇ (<⇒≱ 0<q))
+... | true = begin
+  ⌈ p - ½ ⌉ ≡⟨ ceiling-cong (+-congˡ (- ½) eq) ⟩
+  ⌈ q - ½ ⌉ ≡⟨ if-cong q≤ᵇ0≡true ⟨
+  round q   ∎
+  where
+    open ≡-Reasoning
+    q≤0 : q ≤ 0ℚᵘ
+    q≤0 =  ≤-respˡ-≃ eq (≤ᵇ⇒≤ (≡-to-T leq))
+    q≤ᵇ0≡true : (q ≤ᵇ 0ℚᵘ) ≡ true
+    q≤ᵇ0≡true = T-to-≡ (≤⇒≤ᵇ q≤0)
 
 ⌊-q⌋≡-⌈q⌉ : ∀ q → ⌊ - q ⌋ ≡ ℤ.- ⌈ q ⌉
 ⌊-q⌋≡-⌈q⌉ q@record{} = sym (ℤ.neg-involutive ⌊ - q ⌋)
