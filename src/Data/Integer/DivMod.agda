@@ -8,16 +8,17 @@
 
 module Data.Integer.DivMod where
 
-open import Data.Integer.Base using (+_; -[1+_]; +[1+_]; NonZero; _%_; ∣_∣;
-  _%ℕ_; _/ℕ_; _+_; _*_; -_; _-_; pred; -1ℤ; 0ℤ; _⊖_; _≤_; _<_; +≤+; suc;
-  +<+)
+open import Data.Integer.Base
 open import Data.Integer.Properties
 open import Data.Nat.Base as ℕ using (ℕ; z≤n; s≤s; z<s; s<s)
-import Data.Nat.Properties as ℕ using (m∸n≤m)
-import Data.Nat.DivMod as ℕ using (m≡m%n+[m/n]*n; m%n≤n; m%n<n; n/1≡n; n%1≡0)
+import Data.Nat.DivMod as ℕ using (m≡m%n+[m/n]*n; m%n≤n; m%n<n; n/1≡n; n%1≡0;
+  m*n/m*o≡n/o; m*n%o≡m*n%[m*o])
+import Data.Nat.Properties as ℕ using (m∸n≤m; m*n≢0; m*n≢0⇒m≢0; m*n≢0⇒n≢0;
+  m*n≡0⇒n≡0; *-comm)
 open import Function.Base using (_∘′_)
 open import Relation.Binary.PropositionalEquality.Core
-  using (_≡_; cong; sym; subst; trans)
+  using (_≡_; _≢_; refl; cong; sym; subst; trans)
+open import Relation.Nullary.Negation using (contradiction)
 open ≤-Reasoning
 
 ------------------------------------------------------------------------
@@ -136,6 +137,111 @@ n/ℕ1≡n -[1+ n ] with ℕ.suc n ℕ.% 1 | ℕ.n%1≡0 (ℕ.suc n)
 
 n/1≡n : ∀ n → n / + 1 ≡ n
 n/1≡n n = trans (div-pos-is-/ℕ n 1) (n/ℕ1≡n n)
+
+/ℕ-congʳ : ∀ i {m} {n} .{{_ : ℕ.NonZero m}} → .{{_ : ℕ.NonZero n}} →
+           m ≡ n → i /ℕ m ≡ i /ℕ n
+/ℕ-congʳ i {m} {n} refl = refl
+
+nonNeg[i]⇒i/ℕd : ∀ i d .{{_ : ℕ.NonZero d}} .{{_ : NonNegative i}} →
+                i /ℕ d ≡ + (∣ i ∣ ℕ./ d)
+nonNeg[i]⇒i/ℕd (+ i) d = refl
+
+neg[i]∧∣i∣%d≡0⇒i/ℕd : ∀ i {d} .{{_ : ℕ.NonZero d}} .{{_ : Negative i}} →
+                     ∣ i ∣ ℕ.% d ≡ 0 → i /ℕ d ≡ - (+ (∣ i ∣ ℕ./ d))
+neg[i]∧∣i∣%d≡0⇒i/ℕd -[1+ n ] {d} _ with ℕ.zero ← ℕ.suc n ℕ.% d = refl
+
+neg[i]∧∣i∣%d≢0⇒i/ℕd : ∀ i d .{{_ : ℕ.NonZero d}} .{{_ : Negative i}}
+                     .{{_ : ℕ.NonZero (∣ i ∣ ℕ.% d)}} → i /ℕ d ≡ -[1+ ∣ i ∣ ℕ./ d ]
+neg[i]∧∣i∣%d≢0⇒i/ℕd -[1+ n ] d {{_}} {{_}} {{mod}} with ℕ.suc n ℕ.% d
+... | ℕ.zero  = contradiction refl (ℕ.≢-nonZero⁻¹ ℕ.zero)
+... | ℕ.suc _ = refl
+
+*-cancelˡ-/ℕ : ∀ m i n .{{_ : ℕ.NonZero n}} .{{_ : ℕ.NonZero (m ℕ.* n)}} →
+                (+ m * i) /ℕ (m ℕ.* n) ≡ i /ℕ n
+*-cancelˡ-/ℕ m i@(+ _) n = begin-equality
+  (+ m * i) /ℕ (m ℕ.* n)
+      ≡⟨ nonNeg[i]⇒i/ℕd (+ m * i) (m ℕ.* n) ⟩
+  + (∣ + m * i ∣ ℕ./ (m ℕ.* n))
+      ≡⟨ cong (+_ ∘′ (ℕ._/ (m ℕ.* n))) (∣i*j∣≡∣i∣*∣j∣ (+ m) i) ⟩
+  + ((m ℕ.* ∣ i ∣) ℕ./ (m ℕ.* n))
+      ≡⟨ cong +_ (ℕ.m*n/m*o≡n/o m ∣ i ∣ n) ⟩
+  + (∣ i ∣ ℕ./ n)
+      ≡⟨ nonNeg[i]⇒i/ℕd i n ⟨
+  i /ℕ n ∎
+  where
+    instance
+      _ : ℕ.NonZero m
+      _ = ℕ.m*n≢0⇒m≢0 m
+      _ : NonNegative (+ m * i)
+      _ = i≥0∧j≥0⇒i*j≥0 (+ m) i
+*-cancelˡ-/ℕ m i@(-[1+ _ ]) n = helper
+  where
+    m*[∣i∣%n]≡∣m*i∣%[m*n] : m ℕ.* (∣ i ∣ ℕ.% n) ≡ ∣ + m * i ∣ ℕ.% (m ℕ.* n)
+    m*[∣i∣%n]≡∣m*i∣%[m*n] rewrite ∣i*j∣≡∣i∣*∣j∣ (+ m) i = ℕ.m*n%o≡m*n%[m*o] m ∣ i ∣ n
+    instance
+      _ : ℕ.NonZero m
+      _ = ℕ.m*n≢0⇒m≢0 m
+      _ : Positive (+ m)
+      _ = nonNeg∧nonZero⇒Pos (+ m)
+      _ : Negative (+ m * i)
+      _ = i>0∧j<0⇒i*j<0 (+ m) i
+    helper : (+ m * i) /ℕ (m ℕ.* n) ≡ i /ℕ n
+    helper with ∣ + m * i ∣ ℕ.% (m ℕ.* n) in ∣m*i∣%[m*n]
+    ... | ℕ.zero = begin-equality
+      (+ m * i) /ℕ (m ℕ.* n)
+          ≡⟨ neg[i]∧∣i∣%d≡0⇒i/ℕd (+ m * i) ∣m*i∣%[m*n] ⟩
+      - (+ (∣ + m * i ∣ ℕ./ (m ℕ.* n)))
+          ≡⟨ cong (-_ ∘′ +_ ∘′ (ℕ._/ _)) (∣i*j∣≡∣i∣*∣j∣ (+ m) i) ⟩
+      - (+ ((m ℕ.* ∣ i ∣) ℕ./ (m ℕ.* n)))
+          ≡⟨ cong (-_ ∘′ +_) (ℕ.m*n/m*o≡n/o m ∣ i ∣ n) ⟩
+      - (+ (∣ i ∣ ℕ./ n)) ≡⟨ neg[i]∧∣i∣%d≡0⇒i/ℕd i ∣i∣%m≡0 ⟨
+      i /ℕ n ∎
+      where
+        m*[∣i∣%n]≡0 : m ℕ.* (∣ i ∣ ℕ.% n) ≡ 0
+        m*[∣i∣%n]≡0 rewrite m*[∣i∣%n]≡∣m*i∣%[m*n] | ∣m*i∣%[m*n] = refl
+        ∣i∣%m≡0 : ∣ i ∣ ℕ.% n ≡ 0
+        ∣i∣%m≡0 = ℕ.m*n≡0⇒n≡0 m _ m*[∣i∣%n]≡0
+    ... | ℕ.suc _ = begin-equality
+      (+ m * i) /ℕ (m ℕ.* n)
+          ≡⟨ neg[i]∧∣i∣%d≢0⇒i/ℕd (+ m * i) (m ℕ.* n) ⟩
+      -[1+ ∣ + m * i ∣ ℕ./ (m ℕ.* n) ]
+          ≡⟨ cong (-[1+_] ∘′ (ℕ._/ (m ℕ.* n))) (∣i*j∣≡∣i∣*∣j∣ (+ m) i) ⟩
+      -[1+ (m ℕ.* ∣ i ∣) ℕ./ (m ℕ.* n) ]
+          ≡⟨ cong -[1+_] (ℕ.m*n/m*o≡n/o m ∣ i ∣ n) ⟩
+      -[1+ ∣ i ∣ ℕ./ n ] ≡⟨ neg[i]∧∣i∣%d≢0⇒i/ℕd i n ⟨
+      i /ℕ n ∎
+      where instance
+        ∣m*i∣%[m*n]≢0 : ℕ.NonZero (∣ + m * i ∣ ℕ.% (m ℕ.* n))
+        ∣m*i∣%[m*n]≢0 rewrite ∣m*i∣%[m*n] = _
+        m*[∣i∣%n]≢0 : ℕ.NonZero (m ℕ.* (∣ i ∣ ℕ.% n))
+        m*[∣i∣%n]≢0 rewrite m*[∣i∣%n]≡∣m*i∣%[m*n] | ∣m*i∣%[m*n] = _
+        ∣i∣%n≢0 : ℕ.NonZero (∣ i ∣ ℕ.% n)
+        ∣i∣%n≢0 = ℕ.m*n≢0⇒n≢0 m
+
+*-cancelʳ-/ℕ : ∀ i m n .{{_ : ℕ.NonZero n}} .{{_ : ℕ.NonZero (n ℕ.* m)}} →
+                (i * + m) /ℕ (n ℕ.* m) ≡ i /ℕ n
+*-cancelʳ-/ℕ i m n rewrite *-comm i (+ m) | ℕ.*-comm n m = *-cancelˡ-/ℕ m i n
+
+*-cancelˡ-/ : ∀ i j k .{{_ : NonZero k}} .{{_ : NonZero (i * k)}} →
+              {{_ : NonNegative i}} → (i * j) / (i * k) ≡ j / k
+*-cancelˡ-/ (+ i) j k = begin-equality
+  (sign (+ i * k) ◃ 1) * ((+ i * j) /ℕ ∣ + i * k ∣)
+        ≡⟨ cong (λ x → (x ◃ 1) * ((+ i * j) /ℕ _)) (sign-* (+ i) k)⟩
+  (sign k ◃ 1) * ((+ i * j) /ℕ ∣ + i * k ∣)
+        ≡⟨ cong ((sign k ◃ 1) *_) (/ℕ-congʳ (+ i * j) (∣i*j∣≡∣i∣*∣j∣ (+ i) k)) ⟩
+  (sign k ◃ 1) * ((+ i * j) /ℕ (∣ + i ∣ ℕ.* ∣ k ∣))
+        ≡⟨ cong ((sign k ◃ 1) *_) (*-cancelˡ-/ℕ i j ∣ k ∣) ⟩
+  j / k ∎
+  where
+    instance
+      _ : NonZero (+ i)
+      _ = i*j≢0⇒i≢0 (+ i)
+      _ : ℕ.NonZero (∣ + i ∣ ℕ.* ∣ k ∣)
+      _ = ℕ.m*n≢0 ∣ + i ∣ ∣ k ∣
+
+*-cancelʳ-/ : ∀ i j k .{{_ : NonZero k}} .{{_ : NonZero (k * j)}} →
+              {{_ : NonNegative j}} → (i * j) / (k * j) ≡ i / k
+*-cancelʳ-/ i j k rewrite *-comm i j | *-comm k j = *-cancelˡ-/ j i k
 
 ------------------------------------------------------------------------
 -- DEPRECATED NAMES
