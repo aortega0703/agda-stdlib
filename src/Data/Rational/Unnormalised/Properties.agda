@@ -2044,8 +2044,8 @@ private
     q≥0 : (q ≤ᵇ 0ℚᵘ) ≡ false
     q≥0 = T-not-to-≡ (≰⇒≰ᵇ (<⇒≱ q>0))
 
-round[-q]≡round[q] : ∀ q → round (- q) ≡ ℤ.- (round q)
-round[-q]≡round[q] q@record{} with <-cmp q 0ℚᵘ
+round[-q]≡-round[q] : ∀ q → round (- q) ≡ ℤ.- (round q)
+round[-q]≡-round[q] q@record{} with <-cmp q 0ℚᵘ
 ... | tri< a ¬b ¬c = begin
   round (- q)           ≡⟨ ℤ.neg-involutive (round (- q)) ⟨
   ℤ.- (ℤ.- round (- q)) ≡⟨ cong ℤ.-_ (q>0⇒round[-q]≡round[q] (neg-mono-< a)) ⟨
@@ -2148,25 +2148,23 @@ q≤i/1⇒⌈q⌉≤i i q q≤i/1 = begin
 ------------------------------------------------------------------------
 -- Approximation errors of ⌊_⌋ ⌈_⌉ and round(_)
 
-private
-  -1<q-⌊q⌋ : ∀ q → - 1ℚᵘ < q - ⌊ q ⌋ / 1
-  -1<q-⌊q⌋ q = let ⌊q⌋ = ⌊ q ⌋ / 1 in begin-strict
+∣q-⌊q⌋∣<1 : ∀ q → ∣ q - ⌊ q ⌋ / 1 ∣ < 1ℚᵘ
+∣q-⌊q⌋∣<1 q = -q<p<q⇒∣p∣<q -1<q-⌊q⌋ q-⌊q⌋<1
+  where
+  open ≤-Reasoning
+  open import Algebra.Properties.AbelianGroup +-0-abelianGroup
+  -1<q-⌊q⌋ : - 1ℚᵘ < q - ⌊ q ⌋ / 1
+  -1<q-⌊q⌋ = let ⌊q⌋ = ⌊ q ⌋ / 1 in begin-strict
     - 1ℚᵘ     <⟨ *<* ℤ.-<+ ⟩
     0ℚᵘ       ≃⟨ +-inverseʳ ⌊q⌋ ⟨
     ⌊q⌋ - ⌊q⌋ ≤⟨ +-monoˡ-≤ _ (⌊q⌋≤q q) ⟩
-    q - ⌊q⌋   ∎ where open ≤-Reasoning
+    q - ⌊q⌋   ∎
 
-  q-⌊q⌋<1 : ∀ q → q - ⌊ q ⌋ / 1 < 1ℚᵘ
-  q-⌊q⌋<1 q = let ⌊q⌋ = ⌊ q ⌋ / 1 in begin-strict
+  q-⌊q⌋<1 : q - ⌊ q ⌋ / 1 < 1ℚᵘ
+  q-⌊q⌋<1 = let ⌊q⌋ = ⌊ q ⌋ / 1 in begin-strict
     q - ⌊q⌋         <⟨ +-monoˡ-< _ (q<⌊q⌋+1 q) ⟩
     ⌊q⌋ + 1ℚᵘ - ⌊q⌋ ≃⟨ xyx⁻¹≈y ⌊q⌋ 1ℚᵘ ⟩
     1ℚᵘ             ∎
-    where
-    open ≤-Reasoning
-    open import Algebra.Properties.AbelianGroup +-0-abelianGroup
-
-∣q-⌊q⌋∣<1 : ∀ q → ∣ q - ⌊ q ⌋ / 1 ∣ < 1ℚᵘ
-∣q-⌊q⌋∣<1 q = -q<p<q⇒∣p∣<q (-1<q-⌊q⌋ q) (q-⌊q⌋<1 q)
 
 ∣q-⌈q⌉∣<1 : ∀ q → ∣ q - ⌈ q ⌉ / 1 ∣ < 1ℚᵘ
 ∣q-⌈q⌉∣<1 q@record{} = let ⌊-q⌋ = ⌊ - q ⌋ / 1 in begin-strict
@@ -2176,55 +2174,37 @@ private
   ∣ - q - ⌊-q⌋ ∣    <⟨ ∣q-⌊q⌋∣<1 (- q) ⟩
   1ℚᵘ               ∎ where open ≤-Reasoning
 
-private
-  -½≤q-⌊q+½⌋ : ∀ q → - ½ ≤ q - ⌊ q + ½ ⌋ / 1
-  -½≤q-⌊q+½⌋ q = begin
-    - ½               ≃⟨ \\-leftDividesˡ q (- ½) ⟨
-    q + (- q - ½)     ≡⟨ cong (q +_) (neg-distrib-+ q ½) ⟨
-    q - (q + ½)       ≤⟨ +-monoʳ-≤ q (neg-mono-≤ (⌊q⌋≤q (q + ½))) ⟩
-    q - ⌊ q + ½ ⌋ / 1 ∎
-    where
-    open ≤-Reasoning
-    open import Algebra.Properties.Group +-0-group
-
-  q-⌊q+½⌋≤½ : ∀ q → q - ⌊ q + ½ ⌋ / 1 ≤ ½
-  q-⌊q+½⌋≤½ q = let ⌊q+½⌋ = ⌊ q + ½ ⌋ / 1 in begin
-    q - ⌊q+½⌋               ≃⟨ +-congˡ _ (//-rightDividesʳ ½ q) ⟨
-    q + ½ - ½ - ⌊q+½⌋       <⟨ +-monoˡ-< _ (+-monoˡ-< _ (q<⌊q⌋+1 (q + ½))) ⟩
-    ⌊q+½⌋ + 1ℚᵘ - ½ - ⌊q+½⌋ ≃⟨ +-congˡ (- ⌊q+½⌋) (+-assoc ⌊q+½⌋ 1ℚᵘ (- ½)) ⟩
-    ⌊q+½⌋ + ½ - ⌊q+½⌋       ≃⟨ xyx⁻¹≈y ⌊q+½⌋ ½ ⟩
-    ½                       ∎
-    where
+∣q-round[q]∣≤½ : ∀ q → ∣ q - (round q) / 1 ∣ ≤ ½
+∣q-round[q]∣≤½ q = -q≤p≤q⇒∣p∣≤q -½≤q-round[q] (q-round[q]≤½ q)
+  where
     open ≤-Reasoning
     open import Algebra.Properties.AbelianGroup +-0-abelianGroup
-
-  ceil-minus : ∀ p q → ⌈ p - q ⌉ ≡ ℤ.- ⌊ - p + q ⌋
-  ceil-minus p@record{} q@record{} = begin
-    ℤ.- ⌊ - (p - q) ⌋   ≡⟨ cong (λ h → ℤ.- ⌊ h ⌋) (neg-distrib-+ p (- q)) ⟩
-    ℤ.- ⌊ - p - (- q) ⌋ ≡⟨ cong (λ h → ℤ.- ⌊ - p + h ⌋) (neg-involutive-≡ q) ⟩
-    ℤ.- ⌊ - p + q ⌋     ∎ where open ≡-Reasoning
-
-  q-⌈q-½⌉≤½ : ∀ q → q - ⌈ q - ½ ⌉ / 1 ≤ ½
-  q-⌈q-½⌉≤½ q = let ⌊-q+½⌋ = ⌊ - q + ½ ⌋ / 1 in begin
-    q - ⌈ q - ½ ⌉ / 1    ≡⟨ cong (λ h → q - h / 1) (ceil-minus q ½) ⟩
-    q - (- ⌊-q+½⌋)       ≡⟨ cong (_- (- ⌊-q+½⌋)) (neg-involutive-≡ q) ⟨
-    - (- q) - (- ⌊-q+½⌋) ≡⟨ neg-distrib-+ (- q) _ ⟨
-    - (- q - ⌊-q+½⌋)     ≤⟨ neg-mono-≤ (-½≤q-⌊q+½⌋ (- q)) ⟩
-    - (- ½)              ≡⟨ neg-involutive-≡ ½ ⟩
-    ½ ∎                  where open ≤-Reasoning
-
-  -½≤q-⌈q-½⌉ : ∀ q → - ½ ≤ q - ⌈ q - ½ ⌉ / 1
-  -½≤q-⌈q-½⌉ q = let ⌊-q+½⌋ = ⌊ - q + ½ ⌋ / 1 in begin
-    - ½                  ≤⟨ neg-mono-≤ (q-⌊q+½⌋≤½ (- q)) ⟩
-    - (- q - ⌊-q+½⌋)     ≡⟨ neg-distrib-+ (- q) (- ⌊-q+½⌋) ⟩
-    - (- q) - (- ⌊-q+½⌋) ≡⟨ cong (_- (- ⌊-q+½⌋)) (neg-involutive-≡ q) ⟩
-    q - (- ⌊-q+½⌋)       ≡⟨ cong (λ h → q - h / 1) (ceil-minus q ½) ⟨
-    q - ⌈ q - ½ ⌉ / 1    ∎ where open ≤-Reasoning
-
-∣q-round[q]∣≤½ : ∀ q → ∣ q - (round q) / 1 ∣ ≤ ½
-∣q-round[q]∣≤½ q with q ≤ᵇ 0ℚᵘ
-... | false = -q≤p≤q⇒∣p∣≤q (-½≤q-⌊q+½⌋ q) (q-⌊q+½⌋≤½ q)
-... | true  = -q≤p≤q⇒∣p∣≤q (-½≤q-⌈q-½⌉ q) (q-⌈q-½⌉≤½ q)
+    q-round[q]≤½ : ∀ q → q - round q / 1 ≤ ½
+    q-round[q]≤½ q with q ≤ᵇ 0ℚᵘ
+    ... | false = let ⌊q+½⌋ = ⌊ q + ½ ⌋ / 1 in begin
+      q - ⌊q+½⌋               ≃⟨ +-congˡ _ (//-rightDividesʳ ½ q) ⟨
+      q + ½ - ½ - ⌊q+½⌋       <⟨ +-monoˡ-< _ (+-monoˡ-< _ (q<⌊q⌋+1 (q + ½))) ⟩
+      ⌊q+½⌋ + 1ℚᵘ - ½ - ⌊q+½⌋ ≃⟨ +-congˡ (- ⌊q+½⌋) (+-assoc ⌊q+½⌋ 1ℚᵘ (- ½)) ⟩
+      ⌊q+½⌋ + ½ - ⌊q+½⌋       ≃⟨ xyx⁻¹≈y ⌊q+½⌋ ½ ⟩
+      ½                       ∎
+    ... | true = begin
+      q - ⌈ q - ½ ⌉ / 1      ≡⟨ cong (λ x → q + x / 1) (⌊-q⌋≡-⌈q⌉ (q - ½)) ⟨
+      q + ⌊ - (q - ½) ⌋ / 1  ≤⟨ +-monoʳ-≤ q (⌊q⌋≤q (- (q - ½))) ⟩
+      q - (q - ½)            ≃⟨ +-congʳ q (⁻¹-anti-homo‿- q ½) ⟩
+      q + (½ - q)            ≡⟨ +-assoc-≡ q ½ (- q) ⟨
+      q + ½ - q              ≃⟨ xyx⁻¹≈y q ½ ⟩
+      ½                      ∎
+    -½≤q-round[q] : - ½ ≤ q - round q / 1
+    -½≤q-round[q] = begin
+      - ½
+          ≤⟨ neg-mono-≤ (q-round[q]≤½ (- q)) ⟩
+      - (- q - round (- q) / 1)
+          ≡⟨ neg-distrib-+ (- q) _ ⟩
+      - (- q) - (- (round (- q) / 1))
+          ≡⟨ cong₂ _+_ (neg-involutive-≡ q) (neg-involutive-≡ _)  ⟩
+      q + round (- q) / 1
+          ≡⟨ cong ((q +_) ∘ (_/ 1)) (round[-q]≡-round[q] q) ⟩
+      q + ℤ.- round q / 1 ∎
 
 ⌊n/1⌋≡n : ∀ n → ⌊ n / 1 ⌋ ≡ n
 ⌊n/1⌋≡n n = ℤ.n/1≡n n
