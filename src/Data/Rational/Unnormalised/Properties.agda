@@ -2029,6 +2029,34 @@ round-cong {p@record{}} {q@record{}} eq with p ≤ᵇ 0ℚᵘ in leq
 ⌈-q⌉≡-⌊q⌋ : ∀ q → ⌈ - q ⌉ ≡ ℤ.- ⌊ q ⌋
 ⌈-q⌉≡-⌊q⌋ q@record{} = cong (λ x → ℤ.- ⌊ x ⌋) (neg-involutive-≡ q)
 
+private
+  q>0⇒round[-q]≡round[q] : ∀ {q} → q > 0ℚᵘ → round (- q) ≡ ℤ.- round q
+  q>0⇒round[-q]≡round[q] {q} q>0 = begin
+    round (- q)   ≡⟨ if-cong -q≤0 ⟩
+    ⌈ - q - ½ ⌉   ≡⟨ cong ceiling (neg-distrib-+ q ½) ⟨
+    ⌈ - (q + ½) ⌉ ≡⟨ ⌈-q⌉≡-⌊q⌋ (q + ½) ⟩
+    ℤ.- ⌊ q + ½ ⌋ ≡⟨ cong ℤ.-_ (if-cong q≥0) ⟨
+    ℤ.- round q   ∎
+    where
+    open ≡-Reasoning
+    -q≤0 : (- q ≤ᵇ 0ℚᵘ) ≡ true
+    -q≤0 = T-to-≡ (≤⇒≤ᵇ (<⇒≤ (neg-mono-< q>0)))
+    q≥0 : (q ≤ᵇ 0ℚᵘ) ≡ false
+    q≥0 = T-not-to-≡ (≰⇒≰ᵇ (<⇒≱ q>0))
+
+round[-q]≡round[q] : ∀ q → round (- q) ≡ ℤ.- (round q)
+round[-q]≡round[q] q@record{} with <-cmp q 0ℚᵘ
+... | tri< a ¬b ¬c = begin
+  round (- q)           ≡⟨ ℤ.neg-involutive (round (- q)) ⟨
+  ℤ.- (ℤ.- round (- q)) ≡⟨ cong ℤ.-_ (q>0⇒round[-q]≡round[q] (neg-mono-< a)) ⟨
+  ℤ.- round (- (- q))   ≡⟨ cong (ℤ.-_ ∘ round) (neg-involutive-≡ q) ⟩
+  ℤ.- round q           ∎ where open ≡-Reasoning
+... | tri≈ ¬a b ¬c = begin
+  round (- q) ≡⟨ round-cong (-‿cong b) ⟩
+  ℤ.- 0ℤ      ≡⟨ cong ℤ.-_ (round-cong b) ⟨
+  ℤ.- round q ∎ where open ≡-Reasoning
+... | tri> ¬a ¬b c = q>0⇒round[-q]≡round[q] c
+
 ------------------------------------------------------------------------
 -- Bounds of ⌊_⌋ and ⌈_⌉
 
