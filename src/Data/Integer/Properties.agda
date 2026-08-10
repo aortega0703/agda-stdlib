@@ -1176,6 +1176,9 @@ i-j≡0⇒i≡j i j i-j≡0 = begin
   0ℤ + j        ≡⟨  +-identityˡ j ⟩
   j             ∎ where open ≡-Reasoning
 
+∣i-j∣≡0⇒i≡j : ∀ {i} {j} → ∣ i - j ∣ ≡ 0 → i ≡ j
+∣i-j∣≡0⇒i≡j {i} {j} eq = i-j≡0⇒i≡j i j (∣i∣≡0⇒i≡0 eq)
+
 i≤j⇒i-k≤j : ∀ k .{{_ : NonNegative k}} → i ≤ j → i - k ≤ j
 i≤j⇒i-k≤j {i}         +0       i≤j rewrite +-identityʳ i = i≤j
 i≤j⇒i-k≤j {+ m}       +[1+ n ] i≤j = ≤-trans (m⊖n≤m m (suc n)) i≤j
