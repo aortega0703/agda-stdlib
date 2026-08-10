@@ -17,7 +17,7 @@ import Data.Nat.Properties as ℕ using (m∸n≤m; m*n≢0; m*n≢0⇒m≢0; m*
   m*n≡0⇒n≡0; *-comm)
 open import Function.Base using (_∘′_)
 open import Relation.Binary.PropositionalEquality.Core
-  using (_≡_; _≢_; refl; cong; sym; subst; trans)
+  using (_≡_; _≢_; refl; cong; sym; subst; trans; respʳ)
 open import Relation.Nullary.Negation using (contradiction)
 open ≤-Reasoning
 
@@ -91,9 +91,7 @@ div-neg-is-neg-/ℕ n (ℕ.suc d) = -1*i≡-i (n /ℕ ℕ.suc d)
 0≤n⇒0≤n/ℕd (+ n) d (+≤+ m≤n) = +≤+ z≤n
 
 0≤n⇒0≤n/d : ∀ n d .{{_ : NonZero d}} → 0ℤ ≤ n → 0ℤ ≤ d → 0ℤ ≤ (n / d)
-0≤n⇒0≤n/d n (+ d) {{d≢0}} 0≤n (+≤+ 0≤d)
-  rewrite div-pos-is-/ℕ n d {{d≢0}}
-        = 0≤n⇒0≤n/ℕd n d 0≤n
+0≤n⇒0≤n/d n (+ d) 0≤n _ = respʳ _≤_ (sym (div-pos-is-/ℕ n d)) (0≤n⇒0≤n/ℕd n d 0≤n)
 
 [n/d]*d≤n : ∀ n d .{{_ : NonZero d}} → (n / d) * d ≤ n
 [n/d]*d≤n n (+ d) = begin
@@ -130,13 +128,13 @@ a≡a%n+[a/n]*n n d@(-[1+ _ ]) = begin-equality
   + r + - q * d      ≡⟨ cong (_+_ (+ r) ∘′ (_* d)) (sym (-1*i≡-i q)) ⟩
   + r + n / d * d    ∎
 
-n/ℕ1≡n : ∀ n → n /ℕ 1 ≡ n
-n/ℕ1≡n (+ n) = cong +_ (ℕ.n/1≡n n)
-n/ℕ1≡n -[1+ n ] with ℕ.suc n ℕ.% 1 | ℕ.n%1≡0 (ℕ.suc n)
+i/ℕ1≡i : ∀ i → i /ℕ 1 ≡ i
+i/ℕ1≡i (+ n) = cong +_ (ℕ.n/1≡n n)
+i/ℕ1≡i -[1+ n ] with ℕ.suc n ℕ.% 1 | ℕ.n%1≡0 (ℕ.suc n)
 ... | ℕ.zero | suc[n]%1≡0 = cong (λ x → - (+ x)) (ℕ.n/1≡n (ℕ.suc n))
 
-n/1≡n : ∀ n → n / + 1 ≡ n
-n/1≡n n = trans (div-pos-is-/ℕ n 1) (n/ℕ1≡n n)
+i/1≡i : ∀ i → i / + 1 ≡ i
+i/1≡i i = trans (div-pos-is-/ℕ i 1) (i/ℕ1≡i i)
 
 /ℕ-congʳ : ∀ i {m} {n} .{{_ : ℕ.NonZero m}} → .{{_ : ℕ.NonZero n}} →
            m ≡ n → i /ℕ m ≡ i /ℕ n
@@ -177,7 +175,8 @@ neg[i]∧∣i∣%d≢0⇒i/ℕd -[1+ n ] d {{_}} {{_}} {{mod}} with ℕ.suc n �
 *-cancelˡ-/ℕ m i@(-[1+ _ ]) n = helper
   where
     m*[∣i∣%n]≡∣m*i∣%[m*n] : m ℕ.* (∣ i ∣ ℕ.% n) ≡ ∣ + m * i ∣ ℕ.% (m ℕ.* n)
-    m*[∣i∣%n]≡∣m*i∣%[m*n] rewrite ∣i*j∣≡∣i∣*∣j∣ (+ m) i = ℕ.m*n%o≡m*n%[m*o] m ∣ i ∣ n
+    m*[∣i∣%n]≡∣m*i∣%[m*n] = trans (ℕ.m*n%o≡m*n%[m*o] m ∣ i ∣ n)
+                                  (cong (ℕ._% (m ℕ.* n)) (sym (∣i*j∣≡∣i∣*∣j∣ (+ m) i)))
     instance
       _ : ℕ.NonZero m
       _ = ℕ.m*n≢0⇒m≢0 m
@@ -198,7 +197,7 @@ neg[i]∧∣i∣%d≢0⇒i/ℕd -[1+ n ] d {{_}} {{_}} {{mod}} with ℕ.suc n �
       i /ℕ n ∎
       where
         m*[∣i∣%n]≡0 : m ℕ.* (∣ i ∣ ℕ.% n) ≡ 0
-        m*[∣i∣%n]≡0 rewrite m*[∣i∣%n]≡∣m*i∣%[m*n] | ∣m*i∣%[m*n] = refl
+        m*[∣i∣%n]≡0 = trans m*[∣i∣%n]≡∣m*i∣%[m*n] ∣m*i∣%[m*n]
         ∣i∣%m≡0 : ∣ i ∣ ℕ.% n ≡ 0
         ∣i∣%m≡0 = ℕ.m*n≡0⇒n≡0 m _ m*[∣i∣%n]≡0
     ... | ℕ.suc _ = begin-equality

@@ -2233,7 +2233,7 @@ q≤i/1⇒⌈q⌉≤i i q q≤i/1 = begin
       q + ℤ.- round q / 1 ∎
 
 ⌊i/1⌋≡i : ∀ i → ⌊ i / 1 ⌋ ≡ i
-⌊i/1⌋≡i i = ℤ.n/1≡n i
+⌊i/1⌋≡i i = ℤ.i/1≡i i
 
 ⌈i/1⌉≡i : ∀ i → ⌈ i / 1 ⌉ ≡ i
 ⌈i/1⌉≡i i = trans (cong ℤ.-_ (⌊i/1⌋≡i (ℤ.- i))) (ℤ.neg-involutive i)
