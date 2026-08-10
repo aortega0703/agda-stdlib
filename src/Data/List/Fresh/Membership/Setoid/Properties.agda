@@ -4,7 +4,7 @@
 -- Properties of the membership predicate for fresh lists
 ------------------------------------------------------------------------
 
-{-# OPTIONS --cubical-compatible --safe #-}
+{-# OPTIONS --without-K --safe #-}
 
 open import Relation.Binary.Bundles using (Setoid)
 
@@ -159,7 +159,6 @@ All[x≉]-∉ [] ()
 All[x≉]-∉ (p ∷ ps) (here x≈y)   = p x≈y
 All[x≉]-∉ (p ∷ ps) (there x∈ys) = All[x≉]-∉ ps x∈ys
 
-
 ------------------------------------------------------------------------
 -- DEPRECATED NAMES
 ------------------------------------------------------------------------
@@ -170,6 +169,6 @@ All[x≉]-∉ (p ∷ ps) (there x∈ys) = All[x≉]-∉ ps x∈ys
 
 ≈-subst-∈ = ∈-resp-≈
 {-# WARNING_ON_USAGE ≈-subst-∈
-"Warning: ≈-subst-∈ was deprecated in v1.4.
+"Warning: ≈-subst-∈ was deprecated in v2.4.
 Please use ∈-resp-≈ instead."
 #-}

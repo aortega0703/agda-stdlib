@@ -4,7 +4,7 @@
 -- Properties related to All
 ------------------------------------------------------------------------
 
-{-# OPTIONS --cubical-compatible --safe #-}
+{-# OPTIONS --without-K --safe #-}
 
 module Data.List.Relation.Unary.All.Properties where
 
@@ -47,7 +47,7 @@ open import Relation.Nullary.Negation.Core using (¬_; contradiction)
 open import Relation.Nullary.Decidable
   using (Dec; does; yes; no; _because_; ¬?; decidable-stable; dec-true)
 open import Relation.Unary
-  using (Decidable; Pred; ∁; _⟨×⟩_) renaming (_⊆_ to _⋐_)
+  using (Decidable; Irrelevant; Pred; ∁; _⟨×⟩_) renaming (_⊆_ to _⋐_)
 open import Relation.Unary.Properties using (∁?)
 
 private
@@ -62,6 +62,7 @@ private
     x y : A
     xs ys : List A
 
+
 ------------------------------------------------------------------------
 -- Re-export Core Properties
 
@@ -74,8 +75,17 @@ Null⇒null : Null xs → T (null xs)
 Null⇒null [] = _
 
 null⇒Null : T (null xs) → Null xs
-null⇒Null {xs = []   } _ = []
-null⇒Null {xs = _ ∷ _} ()
+null⇒Null {xs = []} _ = []
+
+¬Null-∷ : ¬ Null (x ∷ xs)
+¬Null-∷ (() ∷ _)
+
+Null? : Decidable (Null {A = A})
+Null? []      = yes []
+Null? (_ ∷ _) = no ¬Null-∷
+
+Null-irrelevant : Irrelevant (Null {A = A})
+Null-irrelevant [] [] = refl
 
 ------------------------------------------------------------------------
 -- Properties of the "points-to" relation _[_]=_
@@ -704,14 +714,6 @@ module _ (S : Setoid c ℓ) where
 ------------------------------------------------------------------------
 -- Please use the new names as continuing support for the old names is
 -- not guaranteed.
-
--- Version 1.3
-
-Any¬→¬All = Any¬⇒¬All
-{-# WARNING_ON_USAGE Any¬→¬All
-"Warning: Any¬→¬All was deprecated in v1.3.
-Please use Any¬⇒¬All instead."
-#-}
 
 -- Version 2.0
 

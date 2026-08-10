@@ -4,7 +4,7 @@
 -- Natural number division
 ------------------------------------------------------------------------
 
-{-# OPTIONS --cubical-compatible --safe #-}
+{-# OPTIONS --without-K --safe #-}
 
 module Data.Nat.DivMod where
 
@@ -17,9 +17,13 @@ open import Data.Nat.DivMod.Core
 open import Data.Nat.Divisibility.Core
 open import Data.Nat.Induction
 open import Data.Nat.Properties
-open import Data.Product.Base using (_,_)
-open import Data.Sum.Base using (inj₁; inj₂)
-open import Function.Base using (_$_; _∘_)
+open import Data.Product.Base using (_,_; ∃)
+open import Data.Sum.Base as Sum using (inj₁; inj₂)
+open import Function.Base using (id; _$_; _∘_; _on_)
+open import Function.Definitions using (Injective)
+open import Relation.Binary.Core using (Rel; _⇒_)
+open import Relation.Binary.Construct.Closure.Symmetric
+  as SymClosure using (SymClosure; fwd; bwd)
 open import Relation.Binary.PropositionalEquality.Core
   using (_≡_; cong; cong₂; refl; trans; _≢_; sym)
 open import Relation.Nullary.Negation using (contradiction)
@@ -198,6 +202,12 @@ m/n*n≤m m n = begin
   (m / n) * n + m % n  ≡⟨ +-comm _ (m % n) ⟩
   m % n + (m / n) * n  ≡⟨ m≡m%n+[m/n]*n m n ⟨
   m                    ∎
+
+m<suc[m/n]*n : ∀ m n .{{_ : NonZero n}} → m < suc (m / n) * n
+m<suc[m/n]*n m n = begin-strict
+  m                 ≡⟨ m≡m%n+[m/n]*n m n ⟩
+  m % n + m / n * n <⟨ +-monoˡ-< (m / n * n) (m%n<n m n) ⟩
+  n + m / n * n     ∎
 
 m/n≤m : ∀ m n .{{_ : NonZero n}} → (m / n) ≤ m
 m/n≤m m n = *-cancelʳ-≤ (m / n) m n (begin
@@ -467,6 +477,78 @@ m*n%o≡m*n%[m*o] m n o rewrite *-comm m (n % o) | *-comm m n | *-comm m o
     mn % pn + o <⟨ +-mono-≤-< lem₁ o<n ⟩
     p-1 * n + n ≡⟨ +-comm (p-1 * n) n ⟩
     pn          ∎
+
+------------------------------------------------------------------------
+-- Lemmas characterising the relation `m ≡ n (mod o)`
+
+infix 4 _≡%[_]_
+_≡%[_]_ : ∀ m o .{{_ : NonZero o}} n → Set _
+m ≡%[ o ] n = m % o ≡ n % o
+
+-- Definition of an alternative, *asymmetric* version of that relation
+-- whose `Relation.Binary.Construct.Closure.Symmetric` is equivalent.
+
+infix 4 _≲%[_]_ _≅%[_]_
+_≲%[_]_ _≅%[_]_ : ∀ m o n → Set _
+
+m ≲%[ o ] n = ∃ λ k → n ≡ m + k * o
+m ≅%[ o ] n = SymClosure _≲%[ o ]_ m n
+
+-- Equivalence between _≅%[_]_ and _≡[_]%_
+
+module _ .{{_ : NonZero o}} where
+
+  ≲%[o]⇒≡[o]% : _≲%[ o ]_ ⇒ _≡%[ o ]_
+  ≲%[o]⇒≡[o]% {x = m} {y = n} (k , eq) = begin-equality
+    m % o           ≡⟨ [m+kn]%n≡m%n m k o ⟨
+    (m + k * o) % o ≡⟨ cong (_% o) eq ⟨
+    n % o ∎
+
+  ≅%[o]⇒≡[o]% : _≅%[ o ]_ ⇒ _≡%[ o ]_
+  ≅%[o]⇒≡[o]% = SymClosure.fold sym ≲%[o]⇒≡[o]%
+
+  ≡[o]%⇒≲%[o] : m ≡%[ o ] n → m ≤ n → m ≲%[ o ] n
+  ≡[o]%⇒≲%[o] {m = m} {n = n} eq m≤n = k , (begin-equality
+    n                           ≡⟨ m≡m%n+[m/n]*n n o ⟩
+    n % o + n / o * o           ≡⟨ cong (_+ n / o * o) eq ⟨
+    m % o + n / o * o           ≡⟨ cong ((m % o +_) ∘ (_* o)) (m+[n∸m]≡n (/-monoˡ-≤ o m≤n)) ⟨
+    m % o + (m / o + k) * o     ≡⟨ cong (m % o +_) (*-distribʳ-+ o (m / o) k) ⟩
+    m % o + (m / o * o + k * o) ≡⟨ +-assoc (m % o) _ _ ⟨
+    (m % o + m / o * o) + k * o ≡⟨ cong (_+ k * o) (m≡m%n+[m/n]*n m o) ⟨
+    m + k * o                   ∎)
+    where k = n / o ∸ m / o
+
+  ≡[o]%⇒≅%[o] : _≡%[ o ]_ ⇒ _≅%[ o ]_
+  ≡[o]%⇒≅%[o] {x = m} {y = n} eq =
+    Sum.[ fwd ∘ ≡[o]%⇒≲%[o] eq , bwd ∘ ≡[o]%⇒≲%[o] (sym eq) ]′ (≤-total m n)
+
+  ≡%-suc-injective : Injective _≡%[ o ]_ _≡%[ o ]_ suc
+  ≡%-suc-injective = ≅%[o]⇒≡[o]% ∘ lemma-≅% ∘ ≡[o]%⇒≅%[o]
+    where
+    lemma-≲% : (_≲%[ o ]_ on suc) ⇒ _≲%[ o ]_
+    lemma-≲% (k , eq) = k , cong pred eq
+
+    lemma-≅% : (_≅%[ o ]_ on suc) ⇒ _≅%[ o ]_
+    lemma-≅% = SymClosure.hmap suc id lemma-≲%
+
+private
+
+  -- Alex Rice's optimised direct proof of the above
+  ≡%[o]-suc-injective : .{{_ : NonZero o}} → Injective _≡%[ o ]_ _≡%[ o ]_ suc
+  ≡%[o]-suc-injective {o = so@(suc o)} {x = m} {y = n} eq = begin-equality
+    m % so                     ≡⟨ lemma m ⟩
+    (suc m % so + o % so) % so ≡⟨ cong (λ a → (a + o % so) % so) eq ⟩
+    (suc n % so + o % so) % so ≡⟨ lemma n ⟨
+    n % so ∎
+    where
+    lemma : ∀ n → n % so ≡ (suc n % so + o % so) % so
+    lemma n = begin-equality
+      n % so                     ≡⟨ [m+n]%n≡m%n n so ⟨
+      (n + so) % so              ≡⟨⟩
+      (n + suc o) % so           ≡⟨ %-congˡ (+-suc n o) ⟩
+      (suc n + o) % so           ≡⟨ %-distribˡ-+ (suc n) o so ⟩
+      (suc n % so + o % so) % so ∎
+
 
 ------------------------------------------------------------------------
 --  A specification of integer division.
