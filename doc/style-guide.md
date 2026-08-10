@@ -85,7 +85,10 @@ automate most of this.
 
 * As a rule of thumb, there should only be one named module per file. Anonymous
   modules are fine, but named internal modules should either be opened publicly
-  immediately or split out into a separate file.
+  immediately or split out into a separate file. There should be *no* internal
+  modules exported publicly with *single-letter* names; such modules are, of
+  course very useful (and much used) in `private`/`where` blocks to help with
+  local namespace management.
 
 * Module parameters should be put on a single line if they fit.
 
@@ -585,6 +588,12 @@ word within a compound word is capitalized except for the first word.
 * Correspondingly, the flipped symbols (and their negations) for the
   converse relations are systematically introduced, eg `≥` as `\ge`
   and `≱` as `\gen`.
+
+* Decidable predicates and relations should typically be written as `R?`,
+  where `R` is the underlying property being asserted to be `Decidable`,
+  moreover typically sharing the same fixity and precedence as `R`: thus
+  - `_≡?_` (at `infix 4`) for `DecidableEquality`
+  - `_≈?_` (ditto.) for the fieldname of the general `IsDecEquivalence`
 
 * Any exceptions to these conventions should be flagged on the GitHub
   `agda-stdlib` issue tracker in the usual way.

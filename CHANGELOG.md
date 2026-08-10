@@ -1,71 +1,179 @@
-Version 2.4-dev
-===============
+Version 3.0
+===========
 
 The library has been tested using Agda 2.8.0.
 
 Highlights
 ----------
 
+* Modules that previously used `--cubical-compatible` once again use `--without-K`.
+
+* The notation for `Decidable` relations has been (partially) standardised: thus
+  - `_≡?_` (at `infix 4`) for `DecidableEquality`
+  - `_≈?_` (ditto.) for the general `IsDecEquivalence`
+
+  At present, the old fieldname `_≟_` has been retained, in order to avoid
+  a non-backwards compatible/breaking change of fieldname, which will plan
+  to do in Version 3.0, with accompanying deprecation of that name, against
+  its eventual removal in subsequent versions.
+
+  The change leads to a number of (trivial) renamings/deprecations, others more
+  substantive in `Data.{Nat|Fin}.Properties` for the concrete datatypes, which
+  are summarised below, but are not each documented for all affected modules.
+
+* Any v1.x deprecation has been removed entirely.
+  This involves the removal of modules:
+  - `Algebra.FunctionProperties.Consequences.Core`
+  - `Algebra.FunctionProperties.Consequences.Propositional`
+  - `Algebra.FunctionProperties.Consequences`
+  - `Algebra.Operations.CommutativeMonoid`
+  - `Algebra.Operations.Ring`
+  - `Algebra.Operations.Semiring`
+  - `Data.AVL.Indexed.WithK`
+  - `Data.AVL.NonEmpty.Propositional`
+  - `Data.AVL.Height`
+  - `Data.AVL.Indexed`
+  - `Data.AVL.IndexedMap`
+  - `Data.AVL.Key`
+  - `Data.AVL.Map`
+  - `Data.AVL.NonEmpty`
+  - `Data.AVL.Value`
+  - `Data.AVL`
+  - `Foreign.Haskell.Maybe`
+  - `Relation.Binary.OrderMorphism`
+  - `Text.Tree.Linear`
+  - `Strict`
+
+  Several Definitions from other modules have also been removed.
+
+
 Bug-fixes
 ---------
 
-* Fix a type error in `README.Data.Fin.Relation.Unary.Top` within the definition of `>-weakInduction`.
+* Removed unnecessary parameter `zero : Zero 0# *` from
+  `Algebra.Structures.IsNonAssociativeRing`.
 
-* Fix a typo in `Algebra.Morphism.Construct.DirectProduct`.
+* Fix a bug in `Data.List.Base`'s `linesBy` (the last empty line would be dropped).
 
-* Fix a typo in `Data.Rational.Properties`: `nonPos*nonPos⇒nonPos` erroneously named,
-  corrected to `nonPos*nonPos⇒nonNeg`.
+* [issue #3003](https://github.com/agda/agda-stdlib/issues/3003)
+  Uncorrected, the existing axiomatisation of `Algebra.Structures.IsKleeneAlgebra`
+  meant that it was possible to prove that `0# ⋆ ≈ 1#`. As a consequence, the
+  axioms have been corrected so that fields `starExpansive` and `starDestructive`
+  now refer to the partial order relation `_≤_`, which is defined in-place, but
+  only depends on the `+-isCommutativeBand` substructure.
 
-* Fix a typo in `Function.Construct.Constant`.
+  As a further knock-on consequence, module `Algebra.Properties.KleeneAlgebra`
+  has been completely rewritten in order to accommodate the new axiomatisation.
+
+* Refactored `Function.Bundles` to export `equivalence`, `toFunction`, and
+  `fromFunction` from `*Inverse` with corresponding deprecations in
+  `Function.Properties.Inverse`.
 
 Non-backwards compatible changes
 --------------------------------
 
+* A major overhaul of the `Function` hierarchy sees the systematic development
+  and use of the theory of the left inverse `from` to a given `Surjective` function
+  `to`, as a consequence of which we can achieve full symmetry of `Bijection`, in
+  `Function.Properties.Bijection`/`Function.Construct.Symmetry`, rather than the
+  restricted versions considered to date. NB. this is non-backwards compatible
+  because the types of various properties are now sharper, and some previous lemmas
+  are no longer present, due to the complexity their deprecation would entail.
+  Specifically:
+  - `Function.Construct.Symmetry.isBijection` no longer requires the hypothesis
+    `Congruent ≈₂ ≈₁ f⁻¹` for `f⁻¹ = B.from`.
+  - `Function.Construct.Symmetry.isBijection-≡` is now redundant, as an instance
+    of the above lemma, so has been deleted.
+  - Similarly, `Function.Construct.Symmetry.bijection` no longer requires a `Congruent`
+    hypothesis, and `Function.Construct.Symmetry.bijection-≡` is now redundant/deleted.
+  - `Function.Properties.Bijection.sym-≡` is now redundant as an instance of a fully
+    general symmetry property `Function.Properties.Bijection.sym`, hence also deleted.
+
+* The notation for `Decidable` relations has been (partially) standardised: thus
+  - `_≡?_` (at `infix 4`) for `DecidableEquality`
+  - `_≈?_` (ditto.) for the fieldname of the general `IsDecEquivalence`
+
+  Despite being non-backwards compatible, because a fieldname has changed, the
+  old notation `_≟_` (which was used for both of the above) has been retained,
+  but deprecated. This leads to a large amount of (trivial) deprecations, in
+  addition to the substantive one under `Relation.Binary.Structures`, and in
+  `Data.{Nat|Fin}.Properties` for the concrete datatypes. These deprecations
+  are summarised below, but are not each documented for each affected module.
+
+* [issue #1436](https://github.com/agda/agda-stdlib/issues/1436)
+  The definitions of `LeftCancellative`/`RightCancellative` in `Algebra.Definitions`
+  have been altered to make the quantification for each argument explicit. The
+  definitions of `AlmostLeftCancellative`/`AlmostRightCancellative` have also been
+  changed to rephrase them in 'positive' logical terms. These definitions have been
+  propagated through the numeric types `X` in `Data.X.Properties`. As part of this
+  refactoring, lemmas in `Algebra.Properties.CancellativeCommutativeSemiring` no
+  longer require a `Decidable _≈_` hypothesis.
+
+* [issue #2471](https://github.com/agda/agda-stdlib/issues/2471)
+  In `Relation.Binary.Definitions`, the left/right order of the components of
+  `_Respects₂_` have been swapped. Previously the position of the `_Respectsˡ_`
+  (respects left) component was placed on the *right* hand side of the pair and
+  `_Respectsʳ_` (respects right) was placed on the *left* hand side of the pair.
+  By switching them the names are now consistent with their location.
+
+* [issue #2547](https://github.com/agda/agda-stdlib/issues/2547)
+  The names of the *implicit* binders in the following definitions have been
+  rectified to be consistent with the rest of `Relation.Binary.Definitions`:
+  `Transitive`, `Antisym`, and `Antisymmetric`.
+
+* [Issue #2548](https://github.com/agda/agda-stdlib/issues/2458)
+  Consistent with other names (such as `∙-cong`, `ε-homo` etc.) in
+  `Algebra.*`, the field name of the basic homomorphism property `homo` in
+  `Algebra.Morphism.Structures.IsMagmaHomomorphism` has been renamed to `∙-homo`.
+
+* [issue #2581](https://github.com/agda/agda-stdlib/issues/2581)
+  The definition of `Adjoint` in `Relation.Binary.Definitions` has been altered
+  to be the conjunction of two universally quantified `Half*Adjoint` properties,
+  rather than to be a universally quantified conjunction, for better compatibility
+  with `Function.Definitions`.
+
+* [Issue #3022](https://github.com/agda/agda-stdlib/issues/3022)
+  The previous development of rose trees has been refactored to make
+  the definitions `safe` wrt termination checking etc. by avoiding
+  the use of `sized-types`, at the cost of a little extra plumbing.
+  ```
+  Data.Tree.Rose
+  Data.Tree.Rose.Properties
+  Data.Tree.Rose.Show
+  ```
+
+* `^-semigroup-morphism` and `^-monoid-morphism` in `Data.Nat.Properties`
+  deprecated below as part of removing v1.x-era deprecations, have moreover had
+  their definitions and signatures updated to use `IsMagmaHomomorphism` and
+  `IsMonoidHomomorphism` respectively
+
+* In `Data.List.DifferenceList.Base`: `take` and `drop` are deprecated
+  because they do not have a lawful relationship to their `Data.List`
+  counterparts. Consider using `viaList` if you want a lawful lifting
+  of `take` or `drop`.
+
+* [Issue #2319](https://github.com/agda/agda-stdlib/issues/2319)
+  The custom syntax for `swap` and `prep` steps in `PermutationReasoning`,
+  defined in `Data.List.Relation.Binary.Permutation.{Propositional|Setoid}`,
+  has been removed.
+
+* In `Data.Product.Relation.Binary.Pointwise.Dependent`, the universe level of
+  the `record POINTWISE` has been lowered to `ℓ₁ ⊔ ℓ₂` given the universe levels
+  `ℓ₁`, resp. `ℓ₂` of the argument relations `_R₁_`, resp. `_R₂_`.
+
 Minor improvements
 ------------------
 
-* The function `Data.Nat.LCG.step` is now a manifest field of the record type
-  `Generator`, as per the discussion on #2936 and upstream issues/PRs. This is
-  consistent with a minimal API for such LCGs, and should be backwards compatible.
-
-* The types of `Data.Vec.Base.{truncate|padRight}` have been weakened so
-  that the argument of type `m ≤ n` is marked as irrelevant. This should be
-  backwards compatible, but does change the intensional behaviour of these
-  functions to be more eager, because no longer blocking on pattern matching
-  on that argument. Corresponding changes have been made to the types of their
-  properties (and their proofs). In particular, `truncate-irrelevant` is now
-  deprecated, because definitionally trivial.
-
-* The function `Data.Vec.Functional.map` is now marked with the `INLINE` pragma.
-  This is consistent with the inlining of `Function.Base._∘_` for which it is
-  an alias, and should be backwards compatible, but does improve the behaviour
-  of the termination checker for some `Vector`-defined operations.
-
-* The type of `Relation.Nullary.Negation.Core.contradiction-irr` has been further
-  weakened so that the negated hypothesis `¬ A` is marked as irrelevant. This is
-  safe to do, in view of `Relation.Nullary.Recomputable.Properties.¬-recompute`.
-  Furthermore, because the *eager* insertion of implicit arguments during type
-  inference interacts badly with `contradiction`, we introduce an explicit name
-  `contradiction′` for its `flip`ped version.
-
-* More generally, `Relation.Nullary.Negation.Core` has been reorganised into two
-  parts: the first concerns definitions and properties of negation considered as
-  a connective in *minimal logic*; the second making actual use of *ex falso* in
-  the form of `Data.Empty.⊥-elim`.
-
-* Refactored usages of `+-∸-assoc 1` to `∸-suc` in:
-  ```agda
-  README.Data.Fin.Relation.Unary.Top
-  Algebra.Properties.Semiring.Binomial
-  Data.Fin.Subset.Properties
-  Data.Nat.Binary.Subtraction
-  Data.Nat.Combinatorics
-  ```
-  Moreover, these have been strengthened to take an irrelevant `m ≤ n` argument.
-
-* In `Data.Vec.Relation.Binary.Pointwise.{Inductive,Extensional}`, the types of
-  `refl`, `sym`, and `trans` have been weakened to allow relations of different
-  levels to be used.
+* [Issue #2502](https://github.com/agda/agda-stdlib/issues/2502) The module
+  `Algebra.Consequences.Base` now takes the underlying equality relation as
+  an additional top-level parameter, with slightly improved ergonomics wrt
+  subsequent imports by clients, as well as streamlined internals. Moreover,
+  it now has the implicit parameters of its internal modules lifted out as
+  global `variable`s.
+`
+* The definitions in `Function.Consequences.Propositional` of the form `strictlyX⇒X`
+  have been streamlined via pattern-matching on `refl`, rather than defined by
+  delegation to `Function.Consequences.Setoid` and the use of `cong`.
 
 Deprecated modules
 ------------------
@@ -73,184 +181,220 @@ Deprecated modules
 Deprecated names
 ----------------
 
-* In `Algebra.Properties.CommutativeSemigroup`:
+* In `Algebra.Definitions`:
   ```agda
-  interchange  ↦   medial
+  StarLeftExpansive     ↦  Relation.Binary.Definitions.KleeneAlgebra.StarLeftExpansive
+  StarRightExpansive    ↦  Relation.Binary.Definitions.KleeneAlgebra.StarRightExpansive
+  StarExpansive         ↦  Relation.Binary.Definitions.KleeneAlgebra.StarExpansive
+  StarLeftDestructive   ↦  Relation.Binary.Definitions.KleeneAlgebra.StarLeftDestructive
+  StarRightDestructive  ↦  Relation.Binary.Definitions.KleeneAlgebra.StarRightDestructive
+  StarDestructive       ↦  Relation.Binary.Definitions.KleeneAlgebra.StarDestructive
   ```
 
-* In `Algebra.Properties.Monoid`:
+* In `Algebra.Morphism.Structures`:
   ```agda
-  ε-comm  ↦   ε-central
+  homo  ↦  ∙-homo
+  ```
+
+* In `Algebra.Properties.CancellativeCommutativeSemiring`:
+  ```agda
+  *-almostCancelʳ  ↦  Algebra.Structures.IsCancellativeCommutativeSemiring.*-cancelʳ-nonZero
+  ```
+
+* In `Data.DifferenceList.Base`:
+  ```agda
+  lift ↦ _++_
   ```
 
 * In `Data.Fin.Properties`:
   ```agda
-  ¬∀⟶∃¬-smallest  ↦   ¬∀⇒∃¬-smallest
-  ¬∀⟶∃¬-          ↦   ¬∀⇒∃¬
+  _≟_      ↦  _≡?_
+  inj⇒≟    ↦  inj⇒≡?
+  ≟-≡      ↦  ≡?-≡
+  ≟-≡-refl ↦  ≡?-≡-refl
+  ≟-≢      ↦  ≡?-≢
   ```
 
-* In `Data.List.Fresh.Membership.Setoid.Properties`:
+* In `Data.Integer.GCD`:
   ```agda
-  ≈-subst-∈   ↦   ∈-resp-≈
+  gcd[0,0]≡0 ↦ gcd[i,i]≡∣i∣
   ```
 
-* In `Data.List.Fresh.Relation.Unary.Any`:
+* In `Data.Nat.GCD`:
   ```agda
-  witness   ↦   satisfiable
+  gcd[0,0]≡0 ↦ gcd[n,n]≡n
   ```
 
-* In `Data.Rational.Properties`:
+* In `Data.Nat.Properties`:
   ```agda
-  nonPos*nonPos⇒nonPos  ↦  nonPos*nonPos⇒nonNeg
+  _≟_                  ↦   _≡?_
+  ≟-diag               ↦   ≡?-≡
+  ≟-≡                  ↦   ≡?-≢
+  ≟?-≡-refl            ↦   ≡?-≡-refl
+  ^-semigroup-morphism ↦   ^-isMagmaHomomorphism
+  ^-monoid-morphism    ↦   ^-isMonoidHomomorphism
   ```
 
-* In `Data.Vec.Properties`:
+* In `Effect.Monad.Partiality`:
   ```agda
-  truncate-irrelevant  ↦  Relation.Binary.PropositionalEquality.Core.refl
+  _≟-Kind_     ↦   _≡?-Kind_
   ```
 
-* In `Relation.Binary.Construct.Intersection`:
+* In `Function.Bundles.Surjection`:
   ```agda
-  decidable     ↦   _∩?_
+  to⁻      ↦  Function.Structures.IsSurjection.from
+  to∘to⁻   ↦  Function.Structures.IsSurjection.strictlyInverseˡ
   ```
 
-* In `Relation.Binary.Construct.Union`:
+* In `Function.Properties.Bijection`:
   ```agda
-  decidable     ↦   _∪?_
+  sym-≡   ↦  sym
   ```
 
-* In `Relation.Nullary.Decidable.Core`:
+* In `Function.Properties.Inverse`:
   ```agda
-  ⊤-dec     ↦   ⊤?
-  ⊥-dec     ↦   ⊥?
-  _×-dec_  ↦   _×?_
-  _⊎-dec_  ↦   _⊎?_
-  _→-dec_  ↦   _→?_
+  toFunction      ↦  Function.Bundles.Inverse.toFunction
+  fromFunction    ↦  Function.Bundles.Inverse.fromFunction
+  ```
 
-* In `Relation.Nullary.Negation`:
+* In `Function.Properties.Surjection`:
   ```agda
-  ∃⟶¬∀¬  ↦   ∃⇒¬∀¬
-  ∀⟶¬∃¬  ↦   ∀⇒¬∃¬
-  ¬∃⟶∀¬  ↦   ¬∃⇒∀¬
-  ∀¬⟶¬∃  ↦   ∀¬⇒¬∃
-  ∃¬⟶¬∀  ↦   ∃¬⇒¬∀
+  injective⇒to⁻-cong   ↦  Function.Bundles.Bijection.from-cong
+  ```
+
+* In `Reflection.AST.AlphaEquality`:
+  ```agda
+  ≟⇒α     ↦   ≡?⇒α
+  ```
+
+* In `Relation.Binary.PropositionalEquality`:
+  ```agda
+  ≡-≟-identity     ↦   ≡-≡?-identity
+  ≢-≟-identity     ↦   ≢-≡?-identity
+  ```
+
+* In `Relation.Nary`:
+  ```agda
+  ≟-mapₙ     ↦   ≡?-mapₙ
   ```
 
 New modules
 -----------
 
-* Added tactic ring solvers for rational numbers (issue #1879):
-  `Data.Rational.Tactic.RingSolver`,
-  `Data.Rational.Unnormalised.Tactic.RingSolver`.
+* `Algebra.Properties.KleeneAlgebra` has been completely rewritten.
 
-* `Algebra.Construct.Sub.Group` for the definition of subgroups.
+* `Codata.Guarded.Stream.Relation.Unary.Linked` for a proof that each pair
+  of consecutive elements of a stream are related.
 
-* `Algebra.Module.Construct.Sub.Bimodule` for the definition of subbimodules.
+* `Data.Bool.ListAction.Properties` for properties of conjunction and
+  disjunction of lists.
 
-* `Algebra.Properties.BooleanRing`.
+* `Data.DifferenceList` has been refactored to reexport the contents of two new modules:
+  - `Data.DifferenceList.Base`
+  - `Data.DifferenceList.Properties`
 
-* `Algebra.Properties.BooleanSemiring`.
-
-* `Algebra.Properties.CommutativeRing`.
-
-* `Algebra.Properties.Semiring`.
-
-* `Data.List.Fresh.Membership.DecSetoid`.
-
-* `Data.List.Relation.Binary.Permutation.Algorithmic{.Properties}` for the Choudhury and Fiore definition of permutation, and its equivalence with `Declarative` below.
-
-* `Data.List.Relation.Binary.Permutation.Declarative{.Properties}` for the least congruence on `List` making `_++_` commutative, and its equivalence with the `Setoid` definition.
-
-* `Effect.Monad.Random` and `Effect.Monad.Random.Instances` for an mtl-style randomness monad constraint.
-
-* Various additions over non-empty lists:
+* A new type of lists that grow on the right.
+  This is typically useful to model contexts of typing rules
+  or type accumulators that need to be reversed in the base case.
   ```
-  Data.List.NonEmpty.Relation.Binary.Pointwise
-  Data.List.NonEmpty.Relation.Unary.Any
-  Data.List.NonEmpty.Membership.Propositional
-  Data.List.NonEmpty.Membership.Setoid
+  Data.SnocList.Base
   ```
 
-* `Relation.Binary.Morphism.Construct.On`: given a relation `_∼_` on `B`,
-  and a function `f : A → B`, construct the canonical `IsRelMonomorphism`
-  between `_∼_ on f` and `_∼_`, witnessed by `f` itself.
+* A namespace for the (unsafe) use of `sized-types` to define rose trees
+  and their associated operations, previously defined under `Data.Tree`,
+  with the intention of migrating all such uses of sized datatypes here.
+  ```
+  Data.Sized
+  Data.Sized.Tree
+  ```
+  Correspondingly, the previous development of rose trees has been refactored
+  to make the definitions `safe` wrt termination checking etc.
+  ```
+  Data.Tree.Rose
+  Data.Tree.Rose.Properties
+  Data.Tree.Rose.Show
+  ```
+
+* `Data.Tree.AVL.Indexed.Relation.Unary.Any.Properties.ToList` adds properties of
+  the AVL's operator `toList`: `toList⁺` and `toList⁻`.
 
 Additions to existing modules
 -----------------------------
 
-* In `Algebra.Bundles`:
+* In `Algebra.Consequences.Base`:
   ```agda
-  record BooleanSemiring _ _ : Set _
-  record BooleanRing _ _     : Set _
-  ```
-
-* In `Algebra.Consequences.Propositional`:
-  ```agda
-  binomial-expansion : Associative _∙_ → _◦_ DistributesOver _∙_ →
-    ∀ w x y z → ((w ∙ x) ◦ (y ∙ z)) ≡ ((((w ◦ y) ∙ (w ◦ z)) ∙ (x ◦ y)) ∙ (x ◦ z))
-  identity⇒central   : Identity e _∙_ → Central _∙_ e
-  zero⇒central       : Zero e _∙_ → Central _∙_ e
+  almost⇒exceptˡ : _AlmostLeftCancellative′_ _≈_ P _•_ →
+                   Except_LeftCancellative_ _≈_ P _•_
+  almost⇒exceptʳ : _AlmostRightCancellative′_ _≈_ P _•_ →
+                   Except_RightCancellative_ _≈_ P _•_
+  except⇒almostˡ : Decidable P → Except_LeftCancellative_ _≈_ P _•_ →
+                   _AlmostLeftCancellative′_ _≈_ P _•_
+  except⇒almostʳ : Decidable P → Except_RightCancellative_ _≈_ P _•_ →
+                   _AlmostRightCancellative′_ _≈_ P _•_
   ```
 
 * In `Algebra.Consequences.Setoid`:
   ```agda
-  sel⇒idem : Selective _∙_ → Idempotent _∙_
-  binomial-expansion : Congruent₂ _∙_  → Associative _∙_ → _◦_ DistributesOver _∙_ →
-    ∀ w x y z → ((w ∙ x) ◦ (y ∙ z)) ≈ ((((w ◦ y) ∙ (w ◦ z)) ∙ (x ◦ y)) ∙ (x ◦ z))
-  identity⇒central   : Identity e _∙_ → Central _∙_ e
-  zero⇒central       : Zero e _∙_ → Central _∙_ e
+  comm∧cancelAtˡ⇒cancelAtʳ : LeftCancellativeAt x _∙_ → RightCancellativeAt x _∙_
+  comm∧cancelAtʳ⇒cancelAtˡ : RightCancellativeAt x _∙_ → LeftCancellativeAt x _∙_
   ```
 
 * In `Algebra.Definitions`:
   ```agda
-  Central : Op₂ A → A → Set _
+  LeftCancellativeAt           : A → Op₂ A → Set _
+  RightCancellativeAt          : A → Op₂ A → Set _
+  _AlmostLeftCancellative′_    : (P : Pred A p) → Op₂ A → Set _
+  Provided_LeftCancellative_   : (P : Pred A p) → Op₂ A → Set _
+  Except_LeftCancellative_     : (P : Pred A p) → Op₂ A → Set _
+  _AlmostRightCancellative′_   : (P : Pred A p) → Op₂ A → Set _
+  Provided_RightCancellative_  : (P : Pred A p) → Op₂ A → Set _
+  Except_RightCancellative_    : (P : Pred A p) → Op₂ A → Set _
   ```
 
-* In `Algebra.Definitions.RawMonoid` action of a Boolean on a RawMonoid:
+* In `Algebra.Properties.KleeneAlgebra`:
   ```agda
-  _?>₀_  : Bool → Carrier → Carrier
-  _?>_∙_ : Bool → Carrier → Carrier → Carrier
+  ≤-reflexive    : _≈_ ⇒ _≤_
+  ≤-refl         : Reflexive _≤_
+  ≤-trans        : Transitive _≤_
+  ≤-antisym      : Antisymmetric _≈_ _≤_
+  isPreorder     : IsPreorder _≈_ _≤_
+  isPartialOrder : IsPartialOrder _≈_ _≤_
+  preorder       : Preorder _ _
+  poset          : Poset _ _
   ```
 
-* In `Algebra.Lattice.Properties.BooleanAlgebra.XorRing`:
+* In `Algebra.Structures.IsKleeneAlgebra`:
   ```agda
-  ⊕-∧-isBooleanRing : IsBooleanRing _⊕_ _∧_ id ⊥ ⊤
-  ⊕-∧-booleanRing   : BooleanRing _ _
+  _≤_            : Rel A _
   ```
 
-* In `Algebra.Module.Properties.LeftModule`:
+* In `Data.Bool.Properties`:
   ```agda
-  -1#*ₗm≈-ᴹm : ∀ m → - 1# *ₗ m ≈ᴹ -ᴹ m
-  -‿distrib-*ₗ : ∀ r m → - r *ₗ m ≈ᴹ -ᴹ (r *ₗ m)
-  -ᴹ‿distrib-*ₗ : ∀ r m → r *ₗ (-ᴹ m) ≈ᴹ -ᴹ (r *ₗ m)
+  ∨-monoid : Monoid 0ℓ 0ℓ
+  ∧-monoid : Monoid 0ℓ 0ℓ
   ```
 
-* In `Algebra.Module.Properties.RightModule`:
+* In `Data.Char.Base`:
   ```agda
-  -1#*ₗm≈-ᴹm : m*ᵣ-1#≈-ᴹm : ∀ m → m *ᵣ (- 1#) ≈ᴹ -ᴹ m
-  -‿distrib-*ᵣ : ∀ m r → m *ᵣ (- r) ≈ᴹ -ᴹ (m *ᵣ r)
-  -ᴹ‿distrib-*ᵣ : ∀ m r → (-ᴹ m) *ᵣ r ≈ᴹ -ᴹ (m *ᵣ r)
+  _≉ᵇ_ : (c d : Char) → Bool
+  case-insensitive : Rel Char ℓ → Rel Char ℓ
+  _≈ᵢ_ : Rel Char zero
+  _≉ᵢ_ : Rel Char zero
+  _<ᵇ_ : (c d : Char) → Bool
   ```
 
-* In `Algebra.Properties.Monoid.Mult` properties of the Boolean action on a RawMonoid:
+* In `Data.Char.Properties`: `_≈?_` reinstated from an earlier v1.5 deprecation
   ```agda
-  ?>₀-homo-true  : true ?>₀ x ≈ x
-  ?>₀-assocˡ     : b ?>₀ b′ ?>₀ x ≈ (b ∧ b′) ?>₀ x
-  b?>x∙y≈b?>₀x+y : b ?> x ∙ y ≈ (b ?>₀ x) + y
-  b?>₀x≈b?>x∙0   : b ?>₀ x ≈ b ?> x ∙ 0#
-   ```
-
-* In `Algebra.Properties.RingWithoutOne`:
-  ```agda
-  [-x][-y]≈xy : ∀ x y → - x * - y ≈ x * y
+  infix 4 _≈?_
+  _≈?_ : Decidable _≈_
+  ≈ᵢ-setoid : Setoid _ _
+  ≈ᵢ-decSetoid : DecSetoid _ _
   ```
 
-* In `Algebra.Structures`:
+* In `Data.DifferenceList.Base`:
   ```agda
-  record IsBooleanSemiring + * 0# 1# : Set _
-  record IsBooleanRing + * - 0# 1# : Set _
+  viaList : (List A → List B) → (DiffList A → DiffList B)
   ```
-  NB. the latter is based on `IsCommutativeRing`, with the former on `IsSemiring`.
 
 * In `Data.Bool.Properties`:
   ```agda
@@ -260,31 +404,12 @@ Additions to existing modules
   ≡-to-T-not : ∀ {x} → x ≡ false → T (not x)
   ```
 
-* In `Data.Fin.Permutation.Components`:
+* In `Data.DifferenceList.Properties`:
   ```agda
-  transpose[i,i,j]≡j  : (i j : Fin n) → transpose i i j ≡ j
-  transpose[i,j,j]≡i  : (i j : Fin n) → transpose i j j ≡ i
-  transpose[i,j,i]≡j  : (i j : Fin n) → transpose i j i ≡ j
-  transpose-transpose : transpose i j k ≡ l → transpose j i l ≡ k
-  ```
-
-* In `Data.Fin.Properties`:
-  ```agda
-  ≡-irrelevant : Irrelevant {A = Fin n} _≡_
-  ≟-≡          : (eq : i ≡ j) → (i ≟ j) ≡ yes eq
-  ≟-≡-refl     : (i : Fin n) → (i ≟ i) ≡ yes refl
-  ≟-≢          : (i≢j : i ≢ j) → (i ≟ j) ≡ no i≢j
-  inject-<     : inject j < i
-
-  record Least⟨_⟩ (P : Pred (Fin n) p) : Set p where
-    constructor least
-    field
-      witness : Fin n
-      example : P witness
-      minimal : ∀ {j} → .(j < witness) → ¬ P j
-
-  search-least⟨_⟩  : Decidable P → Π[ ∁ P ] ⊎ Least⟨ P ⟩
-  search-least⟨¬_⟩ : Decidable P → Π[ P ] ⊎ Least⟨ ∁ P ⟩
+  fromList-++ : ∀ xs ys → fromList (xs List.++ ys) ≗ fromList xs ++ fromList ys
+  toList-++ : ListLike dxs → (dys : DiffList A) →
+              toList dxs List.++ toList dys ≡ toList (dxs ++ dys)
+  viaList⁺ : (f : List A → List B) → xs ∼ dxs → f xs ∼ viaList f dxs
   ```
 
 * In `Data.Integer.Base`:
@@ -318,6 +443,11 @@ Additions to existing modules
                 .{{_ : NonNegative j}} → (i * j) / (k * j) ≡ i / k
   ```
 
+* In `Data.Integer.GCD`:
+  ```agda
+    gcd[i,i]≡∣i∣ : ∀ i → gcd i i ≡ + ∣i∣
+  ```
+
 * In `Data.Integer.Properties`:
   ```
   <ᵇ⇒< : T (i <ᵇ j) → i < j
@@ -333,113 +463,93 @@ Additions to existing modules
                        Negative (i * j)
   ```
 
-* In `Data.List.Fresh`:
+* In `Data.List.Membership.Propositional.Properties`:
   ```agda
-  _#[_]_ : A → (R : Rel A r) → Pred (List# A R) _
+  foldl-selective : Selective _≡_ _•_ → ∀ e xs →
+                    (foldl _•_ e xs ≡ e) ⊎ (foldl _•_ e xs ∈ xs)
   ```
 
-* In `Data.List.Fresh.Membership.Setoid.Properties`:
+* In `Data.List.Membership.Setoid.Properties`:
   ```agda
-  ∉-All[x≉] : x ∉ xs → All (x ≉_) xs
-  All[x≉]-∉ : All (x ≉_) xs → x ∉ xs
-  ```
+  foldl-selective : Selective _≈_ _•_ → ∀ e xs →
+                    (foldl _•_ e xs ≈ e) ⊎ (foldl _•_ e xs ∈ xs)
+   ```
 
-* In `Data.List.NonEmpty.Relation.Unary.All`:
-  ```
-  map : P ⊆ Q → All P xs → All Q xs
-  ```
-
-* In `Data.List.Properties`:
-  ```
-  filter-map  : filter P? ∘ map f ≗ map f ∘ filter (P? ∘ f)
-  filter-∩    : filter (P? ∩? Q?) ≗ filter P? ∘ filter Q?
-  filter-swap : filter P? ∘ filter Q? ≗ filter Q? ∘ filter P?
-  ```
-
-* In `Data.Nat.Divisibility`:
+* In `Data.List.Relation.Ternary.Appending.Setoid.Properties`:
   ```agda
-  m∣n⇒m^o∣n^o : ∀ o → m ∣ n → m ^ o ∣ n ^ o
-  n≤o⇒m^n∣m^o : ∀ m → .(n ≤ o) → m ^ n ∣ m ^ o
+  assoc← : ∃[ ys ] Appending bs cs ys × Appending as ys ds →
+           ∃[ xs ] Appending as bs xs × Appending xs cs ds
+  ```
+
+* In `Data.List.Relation.Unary.All.Properties`:
+  ```agda
+  ¬Null-∷         : ¬ Null (x ∷ xs)
+  Null?           : Decidable Null
+  Null-irrelevant : Irrelevant Null
   ```
 
 * In `Data.Nat.DivMod`:
   ```agda
+  m<suc[m/n]*n : ∀ m n → m < suc (m / n) * n
   m*n%o≡m*n%[m*o] : ∀ m n o .{{_ : NonZero o}} .{{_ : NonZero (m * o)}} →
                     m * (n % o) ≡ (m * n) % (m * o)
   ```
 
-* In `Data.Nat.Logarithm`
+* In `Data.Nat.GCD`:
   ```agda
-  2^⌊log₂n⌋≤n : ∀ n .{{ _ : NonZero n }} → 2 ^ ⌊log₂ n ⌋ ≤ n
-  n≤2^⌈log₂n⌉ : ∀ n → n ≤ 2 ^ ⌈log₂ n ⌉
+  gcd[n,n]≡n : ∀ n → gcd n n ≡ n
   ```
 
-* In `Data.Nat.Logarithm.Core`
+* In `Data.Nat.ListAction`:
   ```agda
-  2^⌊log2n⌋≤n : ∀ n .{{_ : NonZero n}} → (acc : Acc _<_ n) → 2 ^ (⌊log2⌋ n acc) ≤ n
-  n≤2^⌈log2n⌉ : ∀ n → (acc : Acc _<_ n) → n ≤ 2 ^ (⌈log2⌉ n acc)
+  minimum : ℕ → List ℕ → ℕ
+  maximum : ℕ → List ℕ → ℕ
   ```
 
-* In `Data.Nat.ListAction.Properties`
+* In `Data.Nat.ListAction.Properties`:
   ```agda
-  *-distribˡ-sum : ∀ m ns → m * sum ns ≡ sum (map (m *_) ns)
-  *-distribʳ-sum : ∀ m ns → sum ns * m ≡ sum (map (_* m) ns)
-  ^-distribʳ-product : ∀ m ns → product ns ^ m ≡ product (map (_^ m) ns)
+  minimum-spec : ∀ n ms → minimum n ms ≡ foldl ℕ._⊓_ n ms
+  minimum-selective : ∀ n ms → minimum n ms ∈ n ∷ ms
+  minimum-≤ : ∀ n ms {k} → k ∈ (n ∷ ms) → minimum n ms ≤ k
+  maximum-spec : ∀ n ms → maximum n ms ≡ foldl ℕ._⊔_ n ms
+  maximum-selective : ∀ n ms → maximum n ms ∈ n ∷ ms
+  maximum-≥ : ∀ n ms {k} → k ∈ (n ∷ ms) → maximum n ms ≥ k
+  product-locate : ∀ ns → product ns ≡ 0 → 0 ∈ ns
   ```
 
 * In `Data.Nat.Properties`:
   ```agda
-  ≟-≢   : (m≢n : m ≢ n) → (m ≟ n) ≡ no m≢n
-  ∸-suc : .(m ≤ n) → suc n ∸ m ≡ suc (n ∸ m)
-  ^-distribʳ-* : ∀ m n o → (n * o) ^ m ≡ n ^ m * o ^ m
-  2*suc[n]≡2+n+n : ∀ n → 2 * (suc n) ≡ 2 + (n + n)
-  m∸n+o≡m∸[n∸o] : ∀ {m n o} → .(n ≤ m) → .(o ≤ n) → (m ∸ n) + o ≡ m ∸ (n ∸ o)
-  m∸n≤m⊔n : ∀ m n → m ∸ n ≤ m ⊔ n
-  m⊔n∸[m∸n]≡n : ∀ m n → m ⊔ n ∸ (m ∸ n) ≡ n
-  m⊔n≡m∸n+n : ∀ m n → m ⊔ n ≡ m ∸ n + n
-  ∣m-n∣≡m⊔n∸m⊓n : ∀ m n → ∣ m - n ∣ ≡ m ⊔ n ∸ m ⊓ n
+  m≢0⇒m+n≢0     : ∀ m n .{{_ : NonZero m}} → NonZero (m + n)
+  n≢0⇒m+n≢0     : ∀ m n .{{_ : NonZero n}} → NonZero (m + n)
+  m≢0∧n≢0⇒m+n≢0 : ∀ m .{{_ : NonZero m}} n .{{_ : NonZero n}} → NonZero (m + n)
+  m+n≢0⇒m≢0∨n≢0 : ∀ m n .{{_ : NonZero (m + n)} → NonZero m ⊎ NonZero n
+  *-almostCancelʳ-≡ : AlmostRightCancellative 0 _*_
   m*n≡0⇒n≡0 : ∀ m n .{{_ : NonZero m}} → m * n ≡ 0 → n ≡ 0
   ```
 
-* In `Data.Product.Properties`:
+* In `Data.Product`:
   ```agda
-  swap-↔ : (A × B) ↔ (B × A)
-  _,′-↔_ : A ↔ C → B ↔ D → (A × B) ↔ (C × D)
-  ```
-
-* In `Data.Rational.Base`:
-  ```
-  _<ᵇ_ : ℚ → ℚ → Bool
+  ∃!-≐ : P ≐ Q → ∃! _≈_ P → ∃! _≈_ Q
+  ∃!-⇔ : P ≐ Q → ∃! _≈_ P ⇔ ∃! _≈_ Q
   ```
 
 * In `Data.Rational.Properties`:
   ```agda
-  <ᵇ⇒<          : T (p <ᵇ q) → p < q
-  <⇒<ᵇ          : p < q → T (p <ᵇ q)
-  ≤⇒≯           : _≤_ ⇒ _≯_
-  p*q≡0⇒p≡0∨q≡0 : p * q ≡ 0ℚ → p ≡ 0ℚ ⊎ q ≡ 0ℚ
-  p*q≢0⇒p≢0     : p * q ≢ 0ℚ → p ≢ 0ℚ
-  p*q≢0⇒q≢0     : p * q ≢ 0ℚ → q ≢ 0ℚ
+  ↥[i/1]≡i  : (i : ℤ) → ↥ (i / 1) ≡ i
+  ↧ₙ[i/1]≡1 : (i : ℤ) → ↧ₙ (i / 1) ≡ 1
+  n/n≡1 : ∀ (n : ℕ) .{{_ : ℕ.NonZero n}} → + n / n ≡ 1ℚ
+  -i/n≡-[i/n] : ∀ (i : ℤ) (n : ℕ) .{{_ : ℕ.NonZero n}} →
+                ℤ.- i / n ≡ - (i / n)
+  *-cancelˡ-/ : ∀ p {q r} .{{_ : ℕ.NonZero r}} .{{_ : ℕ.NonZero (p ℕ.* r)}} →
+                (+ p ℤ.* q) / (p ℕ.* r) ≡ q / r
+  *-cancelʳ-/ : ∀ p {q r} .{{_ : ℕ.NonZero r}} .{{_ : ℕ.NonZero (r ℕ.* p)}} →
+                (q ℤ.* + p) / (r ℕ.* p) ≡ q / r
+  i/n+j/n≡[i+j]/n : ∀ (i j : ℤ) (n : ℕ) .{{_ : ℕ.NonZero n }} →
+                    i / n + j / n ≡ (i ℤ.+ j) / n
   ```
-
-* In `Data.Rational.Show`:
+  
+* In `Data.Rational.Unnormalised.Properties`: 
   ```agda
-  atPrecision : (n : ℕ) → ℚ → ℤ × Vec ℕ n
-  showAtPrecision : ℕ → ℚ → String
-  ```
-
-* In `Data.Rational.Unnormalised.Base`:
-  ```
-  _<ᵇ_ : ℚᵘ → ℚᵘ → Bool
-  ```
-
-* In `Data.Rational.Unnormalised.Properties`:
-  ```agda
-  <ᵇ⇒<                : T (p <ᵇ q) → p < q
-  <⇒<ᵇ                : p < q → T (p <ᵇ q)
-  p*q≃0⇒p≃0∨q≃0       : p * q ≃ 0ℚᵘ → p ≃ 0ℚᵘ ⊎ q ≃ 0ℚᵘ
-  p*q≄0⇒p≄0           : p * q ≄ 0ℚᵘ → p ≄ 0ℚᵘ
-  p*q≢0⇒q≢0           : p * q ≄ 0ℚᵘ → q ≄ 0ℚᵘ
   ≤ᵇ-reflects-≤       : ∀ p q → Reflects (p ≤ q) (p ≤ᵇ q)
   ≰ᵇ⇒≰                : T (not (p ≤ᵇ q)) → p ≰ q
   ≰⇒≰ᵇ                : p ≰ q → T (not (p ≤ᵇ q))
@@ -474,123 +584,105 @@ Additions to existing modules
   ∣q-round[q]∣≤∣q-i∣  : ∀ q i → ∣ q - (round q) / 1 ∣ ≤ ∣ q - i / 1 ∣
   ```
 
-* In `Data.Rational.Unnormalised.Show`:
+* In `Data.Sum.Relation.Binary.Pointwise`:
   ```agda
-  showAtPrecision : ℕ → ℚᵘ → String
+  elim : R =[ f ]⇒ T → S =[ g ]⇒ T →
+         Pointwise R S =[ Sum.[ f , g ]′ ]⇒ T
   ```
 
 * In `Data.Vec.Properties`:
   ```agda
-  map-removeAt : ∀ (f : A → B) (xs : Vec A (suc n)) (i : Fin (suc n)) →
-                 map f (removeAt xs i) ≡ removeAt (map f xs) i
-
-  updateAt-take : (xs : Vec A (m + n)) (i : Fin m) (f : A → A) →
-                  updateAt (take m xs) i f ≡ take m (updateAt xs (inject≤ i (m≤m+n m n)) f)
-
-  truncate-zipWith : (f : A → B → C) .(m≤n : m ≤ n) (xs : Vec A n) (ys : Vec B n) →
-                     truncate m≤n (zipWith f xs ys) ≡ zipWith f (truncate m≤n xs) (truncate m≤n ys)
-
-  truncate-zipWith-truncate : (f : A → B → C) .(m≤n : m ≤ n) .(n≤o : n ≤ o)
-                              (xs : Vec A o) (ys : Vec B n) →
-                              truncate m≤n (zipWith f (truncate n≤o xs) ys) ≡
-                              zipWith f (truncate (≤-trans m≤n n≤o) xs) (truncate m≤n ys)
-
-  truncate-updateAt : .(m≤n : m ≤ n) (xs : Vec A n) (i : Fin m) (f : A → A) →
-                      updateAt (truncate m≤n xs) i f ≡
-                      truncate m≤n (updateAt xs (inject≤ i m≤n) f)
-
-  updateAt-truncate : (xs : Vec A (m + n)) (i : Fin m) (f : A → A) →
-                      updateAt (truncate (m≤m+n m n) xs) i f ≡
-                      truncate (m≤m+n m n) (updateAt xs (inject≤ i (m≤m+n m n)) f)
-
-  map-truncate : (f : A → B) .(m≤n : m ≤ n) (xs : Vec A n) →
-                 map f (truncate m≤n xs) ≡ truncate m≤n (map f xs)
-
-  padRight-lookup : .(m≤n : m ≤ n) (a : A) (xs : Vec A m) (i : Fin m) →
-                    lookup (padRight m≤n a xs) (inject≤ i m≤n) ≡ lookup xs i
-
-  padRight-map : (f : A → B) .(m≤n : m ≤ n) (a : A) (xs : Vec A m) →
-                 map f (padRight m≤n a xs) ≡ padRight m≤n (f a) (map f xs)
-
-  padRight-zipWith : (f : A → B → C) .(m≤n : m ≤ n) (a : A) (b : B)
-                     (xs : Vec A m) (ys : Vec B m) →
-                     zipWith f (padRight m≤n a xs) (padRight m≤n b ys) ≡
-                     padRight m≤n (f a b) (zipWith f xs ys)
-
-  padRight-zipWith₁ : (f : A → B → C) .(o≤m : o ≤ m) .(m≤n : m ≤ n) (a : A) (b : B)
-                      (xs : Vec A m) (ys : Vec B o) →
-                      zipWith f (padRight m≤n a xs) (padRight (≤-trans o≤m m≤n) b ys) ≡
-                      padRight m≤n (f a b) (zipWith f xs (padRight o≤m b ys))
-
-  padRight-take : .(m≤n : m ≤ n) (a : A) (xs : Vec A m) .(n≡m+o : n ≡ m + o) →
-                  take m (cast n≡m+o (padRight m≤n a xs)) ≡ xs
-
-  padRight-drop : .(m≤n : m ≤ n) (a : A) (xs : Vec A m) .(n≡m+o : n ≡ m + o) →
-                  drop m (cast n≡m+o (padRight m≤n a xs)) ≡ replicate o a
-
-  padRight-updateAt : .(m≤n : m ≤ n) (x : A) (xs : Vec A m) (f : A → A) (i : Fin m) →
-                      updateAt (padRight m≤n x xs) (inject≤ i m≤n) f ≡
-                      padRight m≤n x (updateAt xs i f)
+  lookup-head : (xs : Vec A (suc n)) → lookup xs zero ≡ head xs
+  lookup-tail : (xs : Vec A (suc n)) → lookup xs (suc i) ≡ lookup (tail xs) i
   ```
 
-* In `Relation.Binary.Construct.Add.Extrema.NonStrict`:
+* In `Function.Bundles.Bijection`:
   ```agda
-  ≤±-respˡ-≡ : _≤±_ Respectsˡ _≡_
-  ≤±-respʳ-≡ : _≤±_ Respectsʳ _≡_
-  ≤±-resp-≡ : _≤±_ Respects₂ _≡_
-  ≤±-respˡ-≈± : _≤_ Respectsˡ _≈_ → _≤±_ Respectsˡ _≈±_
-  ≤±-respʳ-≈± : _≤_ Respectsʳ _≈_ → _≤±_ Respectsʳ _≈±_
-  ≤±-resp-≈± : _≤_ Respects₂ _≈_ → _≤±_ Respects₂ _≈±_
+  from             : B → A
+  inverseˡ         : Inverseˡ _≈₁_ _≈₂_ to from
+  strictlyInverseˡ : StrictlyInverseˡ _≈₂_ to from
+  inverseʳ         : Inverseʳ _≈₁_ _≈₂_ to from
+  strictlyInverseʳ : StrictlyInverseʳ _≈₁_ to from
   ```
 
-* In `Relation.Binary.Construct.Add.Infimum.NonStrict`:
+* In `Function.Bundles.*Inverse`:
   ```agda
-  ≤₋-respˡ-≡ : _≤₋_ Respectsˡ _≡_
-  ≤₋-respʳ-≡ : _≤₋_ Respectsʳ _≡_
-  ≤₋-resp-≡ : _≤₋_ Respects₂ _≡_
-  ≤₋-respˡ-≈₋ : _≤_ Respectsˡ _≈_ → _≤₋_ Respectsˡ _≈₋_
-  ≤₋-respʳ-≈₋ : _≤_ Respectsʳ _≈_ → _≤₋_ Respectsʳ _≈₋_
-  ≤₋-resp-≈₋ : _≤_ Respects₂ _≈_ → _≤₋_ Respects₂ _≈₋_
+  toFunction   : Func From To
+  fromFunction : Func To From
+  equivalence  : Equivalence From To
   ```
 
-* In `Relation.Binary.Construct.Add.Extrema.Supremum.NonStrict`:
+* In `Function.Bundles.LeftInverse`:
   ```agda
-  ≤⁺-respˡ-≡ : _≤⁺_ Respectsˡ _≡_
-  ≤⁺-respʳ-≡ : _≤⁺_ Respectsʳ _≡_
-  ≤⁺-resp-≡ : _≤⁺_ Respects₂ _≡_
-  ≤⁺-respˡ-≈⁺ : _≤_ Respectsˡ _≈_ → _≤⁺_ Respectsˡ _≈⁺_
-  ≤⁺-respʳ-≈⁺ : _≤_ Respectsʳ _≈_ → _≤⁺_ Respectsʳ _≈⁺_
-  ≤⁺-resp-≈⁺ : _≤_ Respects₂ _≈_ → _≤⁺_ Respects₂ _≈⁺_
+  surjective       : Surjective _≈₁_ _≈₂_ to
+  surjection       : Surjection From To
   ```
 
-* In `Data.Vec.Relation.Binary.Pointwise.Inductive`
+* In `Function.Bundles.RightInverse`:
   ```agda
-  irrelevant : ∀ {_∼_ : REL A B ℓ} {n m} → Irrelevant _∼_ → Irrelevant (Pointwise _∼_ {n} {m})
-  antisym : ∀ {P : REL A B ℓ₁} {Q : REL B A ℓ₂} {R : REL A B ℓ} {m n} →
-            Antisym P Q R → Antisym (Pointwise P {m}) (Pointwise Q {n}) (Pointwise R)
+  isInjection      : IsInjection to
+  injective        : Injective _≈₁_ _≈₂_ to
+  injection        : Injection From To
   ```
 
-* In `Data.Vec.Relation.Binary.Pointwise.Extensional`
+* In `Function.Bundles.Surjection`:
   ```agda
-  antisym : ∀ {P : REL A B ℓ₁} {Q : REL B A ℓ₂} {R : REL A B ℓ} {n} →
-            Antisym P Q R → Antisym (Pointwise P {n}) (Pointwise Q) (Pointwise R)
+  from             : B → A
+  inverseˡ         : Inverseˡ _≈₁_ _≈₂_ to from
+  strictlyInverseˡ : StrictlyInverseˡ _≈₂_ to from
   ```
 
-* In `Relation.Binary.Properties.Setoid`:
+* In `Function.Consequences`:
   ```agda
-  ¬[x≉x] : .(x ≉ x) → Whatever
+  inverseˡ⇒halfLeftAdjoint  : Inverseˡ ≈₁ ≈₂ f f⁻¹ → HalfLeftAdjoint ≈₁ ≈₂ f f⁻¹
+  halfLeftAdjoint⇒inverseˡ  : HalfLeftAdjoint ≈₁ ≈₂ f f⁻¹ → Inverseˡ ≈₁ ≈₂ f f⁻¹
+  inverseʳ⇒halfRightAdjoint : Symmetric ≈₁ → Symmetric ≈₂ →
+                              Inverseʳ ≈₁ ≈₂ f f⁻¹ → HalfRightAdjoint ≈₁ ≈₂ f f⁻¹
+  halfRightAdjoint⇒inverseʳ : Symmetric ≈₁ → Symmetric ≈₂ →
+                              HalfRightAdjoint ≈₁ ≈₂ f f⁻¹ → Inverseʳ ≈₁ ≈₂ f f⁻¹
+  inverseᵇ⇒adjoint          : Symmetric ≈₁ → Symmetric ≈₂ →
+                              Inverseᵇ ≈₁ ≈₂ f f⁻¹ → Adjoint ≈₁ ≈₂ f f⁻¹
+  adjoint⇒inverseᵇ          : Symmetric ≈₁ → Symmetric ≈₂ →
+                              Adjoint ≈₁ ≈₂ f f⁻¹ → Inverseᵇ ≈₁ ≈₂ f f⁻¹
   ```
 
-* In `Relation.Binary.Propositional.Equality.Core`:
+  * In `Function.Consequences.Setoid`:
   ```agda
-  ≢-irrefl : Irreflexive {A = A} _≡_ _≢_
-  ¬[x≢x] : .(x ≢ x) → Whatever
+  inverseˡ⇒halfLeftAdjoint  : Inverseˡ ≈₁ ≈₂ f f⁻¹ → HalfLeftAdjoint ≈₁ ≈₂ f f⁻¹
+  halfLeftAdjoint⇒inverseˡ  : HalfLeftAdjoint ≈₁ ≈₂ f f⁻¹ → Inverseˡ ≈₁ ≈₂ f f⁻¹
+  inverseʳ⇒halfRightAdjoint : Inverseʳ ≈₁ ≈₂ f f⁻¹ → HalfRightAdjoint ≈₁ ≈₂ f f⁻¹
+  halfRightAdjoint⇒inverseʳ : HalfRightAdjoint ≈₁ ≈₂ f f⁻¹ → Inverseʳ ≈₁ ≈₂ f f⁻¹
+  inverseᵇ⇒adjoint          : Inverseᵇ ≈₁ ≈₂ f f⁻¹ → Adjoint ≈₁ ≈₂ f f⁻¹
+  adjoint⇒inverseᵇ          : Adjoint ≈₁ ≈₂ f f⁻¹ → Inverseᵇ ≈₁ ≈₂ f f⁻¹
   ```
 
-* In `Relation.Nullary.Negation.Core`
+* In `Function.Construct.Symmetry`:
   ```agda
-  ¬¬-η           : A → ¬ ¬ A
-  contradiction′ : ¬ A → A → Whatever
+  isBijection : IsBijection ≈₁ ≈₂ to → IsBijection ≈₂ ≈₁ from
+  bijection   : Bijection R S → Bijection S R
+  ```
+
+* In `Function.Properties.Bijection`:
+  ```agda
+  sym : Bijection S T → Bijection T S
+  ```
+
+* In `Function.Structures.IsBijection`:
+  ```agda
+  from             : B → A
+  inverseˡ         : Inverseˡ _≈₁_ _≈₂_ to from
+  strictlyInverseˡ : StrictlyInverseˡ _≈₂_ to from
+  inverseʳ         : Inverseʳ _≈₁_ _≈₂_ to from
+  strictlyInverseʳ : StrictlyInverseʳ _≈₁_ to from
+  from-cong        : Congruent _≈₂_ _≈₁_ from
+  from-injective   : Injective _≈₂_ _≈₁_ from
+  from-surjective  : Surjective _≈₂_ _≈₁_ from
+  from-bijective   : Bijective _≈₂_ _≈₁_ from
+  ```
+
+* In `Function.Structures.IsLeftInverse`:
+  ```agda
+  surjective : Surjective _≈₁_ _≈₂_ to
   ```
 
 * In `Relation.Nullary.Reflects`
@@ -601,35 +693,38 @@ Additions to existing modules
   reflects-refute : ∀ {b} → Reflects A b → ¬ A       → b ≡ false
   ```
 
-* In `Relation.Unary`
+* In `Function.Structures.IsRightInverse`:
   ```agda
-  ⟨_⟩⊢_ : (A → B) → Pred A ℓ → Pred B _
-  [_]⊢_ : (A → B) → Pred A ℓ → Pred B _
+  injective   : Injective _≈₁_ _≈₂_ to
+  isInjection : IsInjection to
   ```
 
-* In `Relation.Unary.Properties`
+* In `Function.Structures.IsSurjection`:
   ```agda
-  _map-⊢_   : P ⊆ Q → f ⊢ P ⊆ f ⊢ Q
-  map-⟨_⟩⊢_ : P ⊆ Q → ⟨ f ⟩⊢ P ⊆ ⟨ f ⟩⊢ Q
-  map-[_]⊢_ : P ⊆ Q → [ f ]⊢ P ⊆ [ f ]⊢ Q
-  ⟨_⟩⊢⁻_    : ⟨ f ⟩⊢ P ⊆ Q → P ⊆ f ⊢ Q
-  ⟨_⟩⊢⁺_    : P ⊆ f ⊢ Q → ⟨ f ⟩⊢ P ⊆ Q
-  [_]⊢⁻_    : Q ⊆ [ f ]⊢ P → f ⊢ Q ⊆ P
-  [_]⊢⁺_    : f ⊢ Q ⊆ P → Q ⊆ [ f ]⊢ P
+  from             : B → A
+  inverseˡ         : Inverseˡ _≈₁_ _≈₂_ to from
+  strictlyInverseˡ : StrictlyInverseˡ _≈₂_ to from
+  from-injective   : Injective _≈₂_ _≈₁_ from
   ```
 
-* In `System.Random`:
+* In `Relation.Binary.Definitions`:
   ```agda
-  randomIO : IO Bool
-  randomRIO : RandomRIO {A = Bool} _≤_
+  HalfLeftAdjoint : Rel A ℓ₁ → Rel B ℓ₂ → (A → B) → (B → A) → Set _
+  HalfLeftAdjoint _≤_ _⊑_ f g = ∀ {x y} → (x ≤ g y → f x ⊑ y)
+
+  HalfRightAdjoint : Rel A ℓ₁ → Rel B ℓ₂ → (A → B) → (B → A) → Set _
+  HalfRightAdjoint _≤_ _⊑_ f g = ∀ {x y} → (f x ⊑ y → x ≤ g y)
+  module KleeneAlgebra (_≤_ : Rel A ℓ₁) where
+    StarLeftExpansive     : ∀ (e : A) (_+_ _*_ : Fun₂ A) (_⋆ : Fun₁ A) → Set _
+    StarRightExpansive    : ∀ (e : A) (_+_ _*_ : Fun₂ A) (_⋆ : Fun₁ A) → Set _
+    StarExpansive         : ∀ (e : A) (_+_ _*_ : Fun₂ A) (_⋆ : Fun₁ A) → Set _
+    StarLeftDestructive   : ∀ (_+_ _*_ : Fun₂ A) (_⋆ : Fun₁ A) → Set _
+    StarRightDestructive  : ∀ (_+_ _*_ : Fun₂ A) (_⋆ : Fun₁ A) → Set _
+    StarDestructive       : ∀ (_+_ _*_ : Fun₂ A) (_⋆ : Fun₁ A) → Set _
   ```
 
-* In Relation.Unary.Properites
+* In `Relation.Unary`:
   ```agda
-  ¬∃⟨P⟩⇒Π[∁P] : ¬ ∃⟨ P ⟩ → Π[ ∁ P ]
-  ¬∃⟨P⟩⇒∀[∁P] : ¬ ∃⟨ P ⟩ → ∀[ ∁ P ]
-  ∃⟨∁P⟩⇒¬Π[P] : ∃⟨ ∁ P ⟩ → ¬ Π[ P ]
-  ∃⟨∁P⟩⇒¬∀[P] : ∃⟨ ∁ P ⟩ → ¬ ∀[ P ]
-  Π[∁P]⇒¬∃[P] : Π[ ∁ P ] → ¬ ∃⟨ P ⟩
-  ∀[∁P]⇒¬∃[P] : ∀[ ∁ P ] → ¬ ∃⟨ P ⟩
+  Unique         : Rel A ℓ₁ → Pred A ℓ₂ → Pred A _
+  Unique _≈_ P x = ∀ {z} → P z → z ≈ x
   ```
