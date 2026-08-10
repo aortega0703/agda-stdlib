@@ -252,6 +252,14 @@ Additions to existing modules
   ```
   NB. the latter is based on `IsCommutativeRing`, with the former on `IsSemiring`.
 
+* In `Data.Bool.Properties`:
+  ```agda
+  T-to-≡     : ∀ {x} → T x       → x ≡ true
+  ≡-to-T     : ∀ {x} → x ≡ true  → T x
+  T-not-to-≡ : ∀ {x} → T (not x) → x ≡ false
+  ≡-to-T-not : ∀ {x} → x ≡ false → T (not x)
+  ```
+
 * In `Data.Fin.Permutation.Components`:
   ```agda
   transpose[i,i,j]≡j  : (i j : Fin n) → transpose i i j ≡ j
@@ -282,12 +290,47 @@ Additions to existing modules
 * In `Data.Integer.Base`:
   ```
   _<ᵇ_ : ℤ → ℤ → Bool
+  -≤-⁻¹ : ∀ {m} {n} → -[1+ m ] ≤ -[1+ n ] → n ℕ.≤ m
+  +≤+⁻¹ : ∀ {m} {n} → + m      ≤ + n      → m ℕ.≤ n
+  -<-⁻¹ : ∀ {m} {n} → -[1+ m ] < -[1+ n ] → n ℕ.< m
+  +<+⁻¹ : ∀ {m} {n} → + m      < + n      → m ℕ.< n
+  ```
+
+* In `Data.Integer.DivMod`:
+  ```agda
+  i/ℕ1≡i : ∀ i → i /ℕ 1 ≡ i
+  i/1≡i : ∀ i → i / + 1 ≡ i
+  /ℕ-congʳ : ∀ i {m} {n} .{{_ : ℕ.NonZero m}} → .{{_ : ℕ.NonZero n}} →
+             m ≡ n → i /ℕ m ≡ i /ℕ n
+  nonNeg[i]⇒i/ℕd      : ∀ i d .{{_ : ℕ.NonZero d}} .{{_ : NonNegative i}} →
+                        i /ℕ d ≡ + (∣ i ∣ ℕ./ d)
+  neg[i]∧∣i∣%d≡0⇒i/ℕd : ∀ i {d} .{{_ : ℕ.NonZero d}} .{{_ : Negative i}} →
+                        ∣ i ∣ ℕ.% d ≡ 0 → i /ℕ d ≡ - (+ (∣ i ∣ ℕ./ d))
+  neg[i]∧∣i∣%d≢0⇒i/ℕd : ∀ i d .{{_ : ℕ.NonZero d}} .{{_ : Negative i}}
+                        .{{_ : ℕ.NonZero (∣ i ∣ ℕ.% d)}} → i /ℕ d ≡ -[1+ ∣ i ∣ ℕ./ d ]
+  *-cancelˡ-/ℕ : ∀ m i n .{{_ : ℕ.NonZero n}} .{{_ : ℕ.NonZero (m ℕ.* n)}} →
+                 (+ m * i) /ℕ (m ℕ.* n) ≡ i /ℕ n
+  *-cancelʳ-/ℕ : ∀ i m n .{{_ : ℕ.NonZero n}} .{{_ : ℕ.NonZero (n ℕ.* m)}} →
+                 (i * + m) /ℕ (n ℕ.* m) ≡ i /ℕ n
+  *-cancelˡ-/ : ∀ i j k .{{_ : NonZero k}} .{{_ : NonZero (i * k)}} →
+                .{{_ : NonNegative i}} → (i * j) / (i * k) ≡ j / k
+  *-cancelʳ-/ : ∀ i j k .{{_ : NonZero k}} .{{_ : NonZero (k * j)}} →
+                .{{_ : NonNegative j}} → (i * j) / (k * j) ≡ i / k
   ```
 
 * In `Data.Integer.Properties`:
   ```
   <ᵇ⇒< : T (i <ᵇ j) → i < j
   <⇒<ᵇ : i < j → T (i <ᵇ j)
+  nonZero⁻¹          : ∀ i → .{{NonZero i}} → i ≢ 0ℤ
+  nonNeg∧nonZero⇒Pos : ∀ i → .{{NonNegative i}} → .{{NonZero i}} → Positive i
+  ∣i-j∣≡0⇒i≡j        : ∀ {i} {j} → ∣ i - j ∣ ≡ 0 → i ≡ j
+  i*j≢0⇒i≢0          : ∀ i {j} .{{_ : NonZero (i * j)}} → NonZero i
+  i*j≢0⇒j≢0          : ∀ i {j} .{{_ : NonZero (i * j)}} → NonZero j
+  i≥0∧j≥0⇒i*j≥0      : ∀ i j → .{{NonNegative i}} → .{{NonNegative j}} →
+                       NonNegative (i * j)
+  i>0∧j<0⇒i*j<0      : ∀ i j → .{{Positive i}} → .{{Negative j}} →
+                       Negative (i * j)
   ```
 
 * In `Data.List.Fresh`:
@@ -317,6 +360,12 @@ Additions to existing modules
   ```agda
   m∣n⇒m^o∣n^o : ∀ o → m ∣ n → m ^ o ∣ n ^ o
   n≤o⇒m^n∣m^o : ∀ m → .(n ≤ o) → m ^ n ∣ m ^ o
+  ```
+
+* In `Data.Nat.DivMod`:
+  ```agda
+  m*n%o≡m*n%[m*o] : ∀ m n o .{{_ : NonZero o}} .{{_ : NonZero (m * o)}} →
+                    m * (n % o) ≡ (m * n) % (m * o)
   ```
 
 * In `Data.Nat.Logarithm`
@@ -349,6 +398,7 @@ Additions to existing modules
   m⊔n∸[m∸n]≡n : ∀ m n → m ⊔ n ∸ (m ∸ n) ≡ n
   m⊔n≡m∸n+n : ∀ m n → m ⊔ n ≡ m ∸ n + n
   ∣m-n∣≡m⊔n∸m⊓n : ∀ m n → ∣ m - n ∣ ≡ m ⊔ n ∸ m ⊓ n
+  m*n≡0⇒n≡0 : ∀ m n .{{_ : NonZero m}} → m * n ≡ 0 → n ≡ 0
   ```
 
 * In `Data.Product.Properties`:
@@ -385,19 +435,43 @@ Additions to existing modules
 
 * In `Data.Rational.Unnormalised.Properties`:
   ```agda
-  <ᵇ⇒<          : T (p <ᵇ q) → p < q
-  <⇒<ᵇ          : p < q → T (p <ᵇ q)
-  p*q≃0⇒p≃0∨q≃0  : p * q ≃ 0ℚᵘ → p ≃ 0ℚᵘ ⊎ q ≃ 0ℚᵘ
-  p*q≄0⇒p≄0      : p * q ≄ 0ℚᵘ → p ≄ 0ℚᵘ
-  p*q≢0⇒q≢0      : p * q ≄ 0ℚᵘ → q ≄ 0ℚᵘ
-  -q≤p≤q⇒|p|≤q   : - q ≤ p → p ≤ q → ∣ p ∣ ≤ q
-  ⌊q⌋≤q          : ⌊ q ⌋ / 1 ≤ q
-  q<⌊q⌋+1        : q < ⌊ q ⌋ / 1 + 1ℚᵘ
-  q≤⌈q⌉          : q ≤ ⌈ q ⌉ / 1
-  ⌈q⌉-1<q        : ⌈ q ⌉ / 1 - 1ℚᵘ < q
-  ∣q-⌊q⌋∣≤1      : ∣ q - ⌊ q ⌋ / 1 ∣ ≤ 1ℚᵘ
-  ∣q-⌈q⌉∣≤1      : ∣ q - ⌈ q ⌉ / 1 ∣ ≤ 1ℚᵘ
-  ∣q-round[q]∣≤½ : ∣ q - (round q) / 1 ∣ ≤ ½
+  <ᵇ⇒<                : T (p <ᵇ q) → p < q
+  <⇒<ᵇ                : p < q → T (p <ᵇ q)
+  p*q≃0⇒p≃0∨q≃0       : p * q ≃ 0ℚᵘ → p ≃ 0ℚᵘ ⊎ q ≃ 0ℚᵘ
+  p*q≄0⇒p≄0           : p * q ≄ 0ℚᵘ → p ≄ 0ℚᵘ
+  p*q≢0⇒q≢0           : p * q ≄ 0ℚᵘ → q ≄ 0ℚᵘ
+  ≤ᵇ-reflects-≤       : ∀ p q → Reflects (p ≤ q) (p ≤ᵇ q)
+  ≰ᵇ⇒≰                : T (not (p ≤ᵇ q)) → p ≰ q
+  ≰⇒≰ᵇ                : p ≰ q → T (not (p ≤ᵇ q))
+  <ᵇ-reflects-<       : ∀ p q → Reflects (p < q) (p <ᵇ q)
+  ≮ᵇ⇒≮                : T (not (p <ᵇ q)) → p ≮ q
+  ≮⇒≮ᵇ                : p ≮ q → T (not (p <ᵇ q))
+  neg-distrib-minus   : ∀ p q → - (p - q) ≡ q - p
+  /-cancelʳ-<         : ∀ {i} {j} d .{{_ : ℕ.NonZero d}} → i / d < j / d → i ℤ.< j
+  /-cancelʳ-≤         : ∀ {i} {j} d .{{_ : ℕ.NonZero d}} → i / d ≤ j / d → i ℤ.≤ j
+  ∣p-q∣≤∣p-r∣+∣r-q∣   : ∀ p q r → ∣ p - q ∣ ≤ ∣ p - r ∣ + ∣ r - q ∣
+  ∣p-q∣≡∣q-p∣         : ∀ p q → ∣ p - q ∣ ≡ ∣ q - p ∣
+  -q≤p≤q⇒|p|≤q        : - q ≤ p → p ≤ q → ∣ p ∣ ≤ q
+  -q<p<q⇒∣p∣<q        : ∀ {p q} → - q < p → p < q → ∣ p ∣ < q
+  floor-cong          : ∀ {p} {q} → p ≃ q → ⌊ p ⌋ ≡ ⌊ q ⌋
+  ceiling-cong        : ∀ {p} {q} → p ≃ q → ⌈ p ⌉ ≡ ⌈ q ⌉
+  round-cong          : ∀ {p} {q} → p ≃ q → round p ≡ round q
+  ⌊i/1⌋≡i             : ∀ i → ⌊ i / 1 ⌋ ≡ i
+  ⌈i/1⌉≡i             : ∀ i → ⌈ i / 1 ⌉ ≡ i
+  ⌊-q⌋≡-⌈q⌉           : ∀ q → ⌊ - q ⌋ ≡ ℤ.- ⌈ q ⌉
+  ⌈-q⌉≡-⌊q⌋           : ∀ q → ⌈ - q ⌉ ≡ ℤ.- ⌊ q ⌋
+  round[-q]≡-round[q] : ∀ q → round (- q) ≡ ℤ.- (round q)
+  ⌊q⌋≤q               : ⌊ q ⌋ / 1 ≤ q
+  q<⌊q⌋+1             : q < ⌊ q ⌋ / 1 + 1ℚᵘ
+  q≤⌈q⌉               : q ≤ ⌈ q ⌉ / 1
+  ⌈q⌉-1<q             : ⌈ q ⌉ / 1 - 1ℚᵘ < q
+  ⌈q⌉≤⌊q⌋+1           : ∀ q → ⌈ q ⌉ ℤ.≤ ⌊ q ⌋ ℤ.+ 1ℤ
+  ∣q-⌊q⌋∣<1           : ∀ q → ∣ q - ⌊ q ⌋ / 1 ∣ < 1ℚᵘ
+  ∣q-⌈q⌉∣<1           : ∀ q → ∣ q - ⌈ q ⌉ / 1 ∣ < 1ℚᵘ
+  ∣q-round[q]∣≤½      : ∀ q → ∣ q - (round q) / 1 ∣ ≤ ½
+  i≤q⇒i≤⌊q⌋           : ∀ i q → i / 1 ≤ q → i ℤ.≤ ⌊ q ⌋
+  q≤i⇒⌈q⌉≤i           : ∀ i q → q ≤ i / 1 → ⌈ q ⌉ ℤ.≤ i
+  ∣q-round[q]∣≤∣q-i∣  : ∀ q i → ∣ q - (round q) / 1 ∣ ≤ ∣ q - i / 1 ∣
   ```
 
 * In `Data.Rational.Unnormalised.Show`:
@@ -517,6 +591,14 @@ Additions to existing modules
   ```agda
   ¬¬-η           : A → ¬ ¬ A
   contradiction′ : ¬ A → A → Whatever
+  ```
+
+* In `Relation.Nullary.Reflects`
+  ```agda
+  reflects-true   : ∀ {b} → Reflects A b → b ≡ true  → A
+  reflects-false  : ∀ {b} → Reflects A b → b ≡ false → ¬ A
+  reflects-proof  : ∀ {b} → Reflects A b → A         → b ≡ true
+  reflects-refute : ∀ {b} → Reflects A b → ¬ A       → b ≡ false
   ```
 
 * In `Relation.Unary`

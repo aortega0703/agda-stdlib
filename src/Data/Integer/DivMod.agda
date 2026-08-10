@@ -91,7 +91,9 @@ div-neg-is-neg-/ℕ n (ℕ.suc d) = -1*i≡-i (n /ℕ ℕ.suc d)
 0≤n⇒0≤n/ℕd (+ n) d (+≤+ m≤n) = +≤+ z≤n
 
 0≤n⇒0≤n/d : ∀ n d .{{_ : NonZero d}} → 0ℤ ≤ n → 0ℤ ≤ d → 0ℤ ≤ (n / d)
-0≤n⇒0≤n/d n (+ d) 0≤n _ = respʳ _≤_ (sym (div-pos-is-/ℕ n d)) (0≤n⇒0≤n/ℕd n d 0≤n)
+0≤n⇒0≤n/d n (+ d) {{d≢0}} 0≤n (+≤+ 0≤d)
+  rewrite div-pos-is-/ℕ n d {{d≢0}}
+        = 0≤n⇒0≤n/ℕd n d 0≤n
 
 [n/d]*d≤n : ∀ n d .{{_ : NonZero d}} → (n / d) * d ≤ n
 [n/d]*d≤n n (+ d) = begin
@@ -155,7 +157,7 @@ neg[i]∧∣i∣%d≢0⇒i/ℕd -[1+ n ] d {{_}} {{_}} {{mod}} with ℕ.suc n �
 ... | ℕ.suc _ = refl
 
 *-cancelˡ-/ℕ : ∀ m i n .{{_ : ℕ.NonZero n}} .{{_ : ℕ.NonZero (m ℕ.* n)}} →
-                (+ m * i) /ℕ (m ℕ.* n) ≡ i /ℕ n
+               (+ m * i) /ℕ (m ℕ.* n) ≡ i /ℕ n
 *-cancelˡ-/ℕ m i@(+ _) n = begin-equality
   (+ m * i) /ℕ (m ℕ.* n)
       ≡⟨ nonNeg[i]⇒i/ℕd (+ m * i) (m ℕ.* n) ⟩
@@ -218,11 +220,11 @@ neg[i]∧∣i∣%d≢0⇒i/ℕd -[1+ n ] d {{_}} {{_}} {{mod}} with ℕ.suc n �
         ∣i∣%n≢0 = ℕ.m*n≢0⇒n≢0 m
 
 *-cancelʳ-/ℕ : ∀ i m n .{{_ : ℕ.NonZero n}} .{{_ : ℕ.NonZero (n ℕ.* m)}} →
-                (i * + m) /ℕ (n ℕ.* m) ≡ i /ℕ n
+               (i * + m) /ℕ (n ℕ.* m) ≡ i /ℕ n
 *-cancelʳ-/ℕ i m n rewrite *-comm i (+ m) | ℕ.*-comm n m = *-cancelˡ-/ℕ m i n
 
 *-cancelˡ-/ : ∀ i j k .{{_ : NonZero k}} .{{_ : NonZero (i * k)}} →
-              {{_ : NonNegative i}} → (i * j) / (i * k) ≡ j / k
+              .{{_ : NonNegative i}} → (i * j) / (i * k) ≡ j / k
 *-cancelˡ-/ (+ i) j k = begin-equality
   (sign (+ i * k) ◃ 1) * ((+ i * j) /ℕ ∣ + i * k ∣)
         ≡⟨ cong (λ x → (x ◃ 1) * ((+ i * j) /ℕ _)) (sign-* (+ i) k)⟩
@@ -239,7 +241,7 @@ neg[i]∧∣i∣%d≢0⇒i/ℕd -[1+ n ] d {{_}} {{_}} {{mod}} with ℕ.suc n �
       _ = ℕ.m*n≢0 ∣ + i ∣ ∣ k ∣
 
 *-cancelʳ-/ : ∀ i j k .{{_ : NonZero k}} .{{_ : NonZero (k * j)}} →
-              {{_ : NonNegative j}} → (i * j) / (k * j) ≡ i / k
+              .{{_ : NonNegative j}} → (i * j) / (k * j) ≡ i / k
 *-cancelʳ-/ i j k rewrite *-comm i j | *-comm k j = *-cancelˡ-/ j i k
 
 ------------------------------------------------------------------------
